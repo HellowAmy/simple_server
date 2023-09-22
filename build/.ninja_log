@@ -1,0 +1,10 @@
+# ninja log v5
+0	1600	1695289191065272600	CMakeFiles/simple_server.dir/src/main.cpp.o	cd669e6e3df4d5ef
+1	410	1695266826740716730	CMakeFiles/simple_server.dir/src/sqlist_op.cpp.o	f5c325ca8cd90dcd
+4	28	1695371228297823803	build.ninja	f0a5388250f5fb59
+1	307	1695289189773224095	CMakeFiles/simple_server.dir/src/server_task.cpp.o	9c78bd030fcff428
+2	3530	1695267757790668182	CMakeFiles/simple_server.dir/src/sqlite3.c.o	8012e314226d4175
+1	1267	1695289190733260136	CMakeFiles/simple_server.dir/make_json.cpp.o	dcff0813bac5d0c1
+1	611	1695289190077235508	CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o	2d9f1fb5fc3aae69
+0	278	1695280595185018323	CMakeFiles/simple_server.dir/src/make_tools.cpp.o	3fdd34669d41858d
+1600	1685	1695289191149275754	simple_server	d73d0c1c9cb0f77f
