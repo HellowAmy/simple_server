@@ -14,8 +14,8 @@ add_executable(${PRO_NAME} ${SRC_ALL}
         util/Tvlog.h
         src/server_task.cpp
         include/server_task.h
-        make_json.cpp
-        make_json.h)
+        ../simple_chat/web_protocol.h
+)
 
 target_link_libraries(${PRO_NAME} PRIVATE ${LIB_ALL})
 

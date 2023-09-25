@@ -38,6 +38,7 @@ struct sformat
 
 
 
+
     //== 处理格式化字符 ==
     template<class ...Tarr>
     std::string sformat_t()
@@ -59,7 +60,7 @@ struct sformat
                     }
                     catch(...) { }
                 }
-                end = flg_end;
+                end = flg_end + _vec.at(val).size();
             }
             else break;
         }
