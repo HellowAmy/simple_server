@@ -244,6 +244,108 @@ bool sqlite_friends::select_friends(int64 account, vector<string> &data)
     return exec_db(sql,fn_cb,&tup);
 }
 
+bool sqlite_info::create_table()
+{
+    //!
+    //! account     :
+    //! phone       :
+    //! age         :
+    //! sex         :
+    //! nickname    :
+    //! location    :
+    //! icon        :
+    //!
+    string sql = R"(
+        CREATE TABLE {0} (
+            {1} INTEGER PRIMARY KEY,
+            {2} INTEGER CHECK ({2} >= 0) ,
+            {3} INTEGER CHECK ({3} >= 0 AND {3} <= 200) ,
+            {4} INTEGER CHECK ({4} >= 0 AND {4} <= 3) ,
+            {5} TEXT,
+            {6} TEXT,
+            {7} TEXT,
+            FOREIGN KEY ({1}) REFERENCES {8} ({9})
+        );
+        )";
+    sqlite_account ac;
+    sql = sformat(sql)(_table,
+                            _data.account,
+                            _data.phone,
+                            _data.age,
+                            _data.sex,
+                            _data.nickname,
+                            _data.location,
+                            _data.icon,
+                       ac.get_table(),ac.get_data().account);
+    return exec_db(sql);
+}
+
+sqlite_info::sqlite_info()
+{
+    _table          = "ac_info";
+    _data.account   = "account";
+    _data.phone     = "phone";
+    _data.age       = "age";
+    _data.sex       = "sex";
+    _data.nickname  = "nickname";
+    _data.location  = "location";
+    _data.icon      = "icon";
+}
+
+bool sqlite_info::insert_info(std::tuple<int64, int64, int64, int64, string, string, string> tup)
+{
+    return insert_db(_table,std::get<0>(tup),std::get<1>(tup),std::get<2>(tup),
+                      std::get<3>(tup),std::get<4>(tup),std::get<5>(tup),std::get<6>(tup));
+}
+
+bool sqlite_info::select_info(int64 account, std::tuple<int64,int64, int64, int64, string, string, string> &tup)
+{
+    std::tuple<data,data> ftup = std::make_tuple(_data,data());
+    auto fdata = std::get<1>(ftup);
+    bool ok = select_info(account,fdata);
+    if(ok)
+    {
+        try {
+            tup = std::make_tuple(std::stoll(fdata.account),std::stoll(fdata.phone),
+                                  std::stoll(fdata.age),std::stoll(fdata.sex),
+                                  fdata.nickname,fdata.location,fdata.icon);
+        } catch(...) { ok = false; }
+    }
+    return ok;
+}
+
+sqlite_info::data sqlite_info::get_data()
+{
+    return _data;
+}
+
+bool sqlite_info::select_info(int64 account, sqlite_info::data &fdata)
+{
+    std::tuple<data,data*> ftup = std::make_tuple(_data,&fdata);
+
+    auto fn_cb = [](void *in_data, int argc, char **argv, char **name){
+        auto ptup = (std::tuple<data,data*>*)(in_data);
+        auto field = std::get<0>(*ptup);
+        auto fdata = std::get<1>(*ptup);
+
+        for (int i=0; i<argc;i++)
+        {
+            if(name[i] == field.account)        fdata->account   = argv[i];
+            else if(name[i] == field.phone)     fdata->phone     = argv[i];
+            else if(name[i] == field.age)       fdata->age       = argv[i];
+            else if(name[i] == field.sex)       fdata->sex       = argv[i];
+            else if(name[i] == field.nickname)  fdata->nickname  = argv[i];
+            else if(name[i] == field.location)  fdata->location  = argv[i];
+            else if(name[i] == field.icon)      fdata->icon      = argv[i];
+        }
+        *ptup = std::make_tuple(field,fdata);
+        return 0;
+    };
+    string sql("SELECT * FROM {0} WHERE {1} = {2};");
+    sql = sformat(sql)(_table,_data.account,account);
+    return exec_db(sql,fn_cb,&ftup);
+}
+
 
 
 
@@ -312,58 +414,3 @@ string sqlite_cache::get_table()
     return _table;
 }
 
-
-bool sqlite_info::create_table()
-{
-    //!
-    //! account     :
-    //! phone       :
-    //! age         :
-    //! sex         :
-    //! nickname    :
-    //! location    :
-    //! icon        :
-    //!
-    string sql = R"(
-        CREATE TABLE {0} (
-            {1} INTEGER PRIMARY KEY,
-            {2} INTEGER CHECK ({2} >= 0) ,
-            {3} INTEGER CHECK ({3} >= 0 AND {3} <= 200) ,
-            {4} INTEGER CHECK ({4} >= 0 AND {4} <= 3) ,
-            {5} TEXT,
-            {6} TEXT,
-            {7} TEXT,
-            FOREIGN KEY ({1}) REFERENCES {8} ({9})
-        );
-        )";
-    sqlite_account ac;
-    sql = sformat(sql)(_table,
-                            _data.account,
-                            _data.phone,
-                            _data.age,
-                            _data.sex,
-                            _data.nickname,
-                            _data.location,
-                            _data.icon,
-                       ac.get_table(),ac.get_data().account);
-    vlogi($(sql) $(ac.get_data().account));
-    return exec_db(sql);
-}
-
-sqlite_info::sqlite_info()
-{
-    _table          = "ac_info";
-    _data.account   = "account";
-    _data.phone     = "phone";
-    _data.age       = "age";
-    _data.sex       = "sex";
-    _data.nickname  = "nickname";
-    _data.location  = "location";
-    _data.icon      = "icon";
-}
-
-bool sqlite_info::insert_info(std::tuple<int64, int64, int64, int64, string, string, string> tup)
-{
-    return insert_db(_table,std::get<0>(tup),std::get<1>(tup),std::get<2>(tup),
-                      std::get<3>(tup),std::get<4>(tup),std::get<5>(tup),std::get<6>(tup));
-}

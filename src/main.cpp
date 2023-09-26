@@ -356,20 +356,28 @@ void test_7()
 
 
     {
-        bool ok = sqli.insert_info({100000002,123456,18,1,"bear h","zhongg","/path"});
+        bool ok = sqli.insert_info({100000002,123456,18,1,"bear h11","zhongg","/path1"});
         (ok == true ? vlogd($(ok)) : vloge($(ok)));
     }
     {
-        bool ok = sqli.insert_info({100000003,123456789,17,0,"bear h","zhongg","/path"});
+        bool ok = sqli.insert_info({100000003,123456789,17,2,"bear h22","zhongg","/path2"});
         (ok == true ? vlogd($(ok)) : vloge($(ok)));
     }
     {
-        bool ok = sqli.insert_info({100000003,123456789,17,0,"bear h","zhongg","/path"});
+        bool ok = sqli.insert_info({100000004,999456789,17,2,"bear h99","zhongg","/path29"});
         (ok == true ? vlogd($(ok)) : vloge($(ok)));
     }
     {
-        bool ok = sqli.insert_info({100000099,123456789,17,0,"bear h","zhongg","/path"});
+        bool ok = sqli.insert_info({100000005,999456789,17,2,"bear h99","zhongg","/path29"});
         (ok == true ? vlogd($(ok)) : vloge($(ok)));
+    }
+    {
+        bool ok = sqli.insert_info({100000003,123456789,16,3,"bear h33","zhongg","/path3"});
+        (ok == true ? vlogd($(ok)) : vloge("test" $(ok)));
+    }
+    {
+        bool ok = sqli.insert_info({100000019,123456789,13,0,"bear h44","zhongg","/path4"});
+        (ok == true ? vlogd($(ok)) : vloge("test" $(ok)));
     }
 
     {
@@ -381,8 +389,38 @@ void test_7()
             vlogi(a);
         }
     }
+    {
+        std::tuple<int64,int64,int64,int64,string,string,string> tup;
+        bool ok = sqli.select_info(100000002,tup);
+        (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        vlogd($(std::get<0>(tup)) $(std::get<1>(tup)) $(std::get<2>(tup))
+        $(std::get<3>(tup)) $(std::get<4>(tup)) $(std::get<5>(tup)) $(std::get<6>(tup)) );
+    }
+    {
+        sqlite_info::data fdata;
+        bool ok = sqli.select_info(100000002,fdata);
+        (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        vlogd($(fdata.account) $(fdata.phone) $(fdata.age) $(fdata.sex)
+                      $(fdata.nickname) $(fdata.location) $(fdata.icon));
+    }
 
-
+    {
+        bool ok = sqli.update_db(sqli.get_table(),sqli.get_data().account,100000003,sqli.get_data().age,89);
+        (ok == true ? vlogd($(ok)) : vloge($(ok)));
+    }
+    {
+        bool ok = sqli.delete_db(sqli.get_table(),sqli.get_data().account,100000002);
+        (ok == true ? vlogd($(ok)) : vloge($(ok)));
+    }
+    {
+        vector<string> data;
+        bool ok = sqli.select_db(sqli.get_table(),data);
+        (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        for(auto a:data)
+        {
+            vlogi(a);
+        }
+    }
 
     {
         bool ok = sql.drop_db(sqlf.get_table());
@@ -405,12 +443,12 @@ int main()
 
     int ret = 7;
     if(ret == 1) test_1();
-    if(ret == 2) test_2();
-    if(ret == 3) test_3();
-    if(ret == 4) test_4();
-    if(ret == 5) test_5();
-    if(ret == 6) test_6();
-    if(ret == 7) test_7();
+    else if(ret == 2) test_2();
+    else if(ret == 3) test_3();
+    else if(ret == 4) test_4();
+    else if(ret == 5) test_5();
+    else if(ret == 6) test_6();
+    else if(ret == 7) test_7();
 
 
     vloge("== end ==");

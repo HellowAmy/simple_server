@@ -201,6 +201,11 @@ public:
     bool create_table() override;
 
     bool insert_info(std::tuple<int64,int64,int64,int64,string,string,string> tup);
+    bool select_info(int64 account,std::tuple<int64,int64,int64,int64,string,string,string> &tup);
+    bool select_info(int64 account,data &fdata);
+
+    data get_data();
+
 
 private:
     data _data;

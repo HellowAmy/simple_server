@@ -26,6 +26,7 @@ server_task::server_task()
 
     ADD_TASK(login,task_login);
     ADD_TASK(swap_msg,task_swap);
+    ADD_TASK(friends_list,task_friends_list);
 }
 
 server_task::~server_task()
@@ -85,8 +86,32 @@ bool server_task::check_sjson_head(string flg)
 bool server_task::init()
 {
     if(_db_account.open_info() == false) return false;
+    if(_db_friends.open_info() == false) return false;
+    if(_db_info.open_info() == false) return false;
     if(_db_cache.open_cache() == false) return false;
     return true;
+}
+
+
+
+void server_task::add_connect_th(int64 account, const sp_channel &channel)
+{
+    std::unique_lock<mutex> lock(_mut_connect);
+    _map_connect.emplace(account,channel);
+}
+
+void server_task::move_connect_th(int64 account)
+{
+    std::unique_lock<mutex> lock(_mut_connect);
+    _map_connect.erase(account);
+}
+
+sp_channel server_task::find_connect_th(int64 account)
+{
+    std::unique_lock<mutex> lock(_mut_connect);
+    auto it = _map_connect.find(account);
+    if(it != _map_connect.end()) { return it->second; }
+    return nullptr;
 }
 
 void server_task::task_login(const sp_channel &channel, const string &sjson)
@@ -103,7 +128,6 @@ void server_task::task_login(const sp_channel &channel, const string &sjson)
             //信息验证
             if(passwd_db == passwd)
             {
-
                 //加入连接池
                 channel->setContextPtr(std::make_shared<int64>(account));
                 add_connect_th(account, channel);
@@ -127,11 +151,12 @@ void server_task::task_swap(const sp_channel &channel, const string &sjson)
     int64 source;
     if(check_swap(sjson,target,source))
     {
+        //成功，直接转发
         auto sp = find_connect_th(target);
         if(sp != nullptr) sp->send(sjson);
         else
         {
-            //失败，加入失败记录
+            //失败，加入失败记录，离线发送
             if(_db_cache.insert_cache(target,sjson))
             { ERR_BACK(CS_ERR_SWAP_SJSON); }
         }
@@ -139,24 +164,46 @@ void server_task::task_swap(const sp_channel &channel, const string &sjson)
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
 
-void server_task::add_connect_th(int64 account, const sp_channel &channel)
+void server_task::task_friends_list(const sp_channel &channel, const string &sjson)
 {
-    std::unique_lock<mutex> lock(_mut_connect);
-    _map_connect.emplace(account,channel);
+    //解析json
+    int64 account;
+    if(get_friends_list(sjson,account))
+    {
+        //查好友库
+        vector<string> vec_friends;
+        if(_db_friends.select_friends(account,vec_friends))
+        {
+            //反馈信息
+            string scev = set_json_vec(vec_friends);
+            channel->send(set_friends_list_back(scev,true));
+        }
+        else ERR_BACK(CS_ERR_SELECT_DATA);
+    }
+    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
 
-void server_task::move_connect_th(int64 account)
+void server_task::task_friends_status(const sp_channel &channel, const string &sjson)
 {
-    std::unique_lock<mutex> lock(_mut_connect);
-    _map_connect.erase(account);
-}
+    //解析json
+    int64 account;
+    if(get_friends_status(sjson,account))
+    {
+        //查信息库
+        sqlite_info::data fdata;
+        if(_db_info.select_info(account,fdata))
+        {
+            //查在线列表
+            bool online = true;
+            if(find_connect_th(account) == nullptr) online = false;
 
-sp_channel server_task::find_connect_th(int64 account)
-{
-    std::unique_lock<mutex> lock(_mut_connect);
-    auto it = _map_connect.find(account);
-    if(it != _map_connect.end()) { return it->second; }
-    return nullptr;
+            //反馈信息
+            string s = set_friends_status_back(account,fdata.nickname,fdata.icon,online,true);
+            channel->send(s);
+        }
+        else ERR_BACK(CS_ERR_SELECT_DATA);
+    }
+    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
 
 

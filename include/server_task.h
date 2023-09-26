@@ -34,7 +34,10 @@ private:
     mutex _mut_connect;
     map<int64,sp_channel> _map_connect;
     map<string,function<void(const sp_channel&,const string &)>> _map_task;
+
     sqlite_account _db_account;
+    sqlite_friends _db_friends;
+    sqlite_info _db_info;
     sqlite_cache _db_cache;
 
     //== _map_connect operator ==
@@ -48,6 +51,8 @@ private:
 
     void task_login(const sp_channel &channel,const string &sjson);
     void task_swap(const sp_channel &channel,const string &sjson);
+    void task_friends_list(const sp_channel &channel,const string &sjson);
+    void task_friends_status(const sp_channel &channel,const string &sjson);
 
     void open(const sp_channel &channel, const sp_http& http);
     void message(const sp_channel &channel, const string& msg);
