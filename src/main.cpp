@@ -5,6 +5,7 @@
 #include "make_tools.h"
 #include "inter_server.h"
 #include "server_task.h"
+#include "server_files.h"
 #include "sqlite_op.h"
 
 using namespace std;
@@ -197,10 +198,24 @@ void test_5()
 {
     vlogd("== server ==");
 
-    server_task t;
-    inter_server s;
-    s.func_bind(t.fn_open,t.fn_message,t.fn_close);
-    if(t.init()) s.open();
+    sqlite_account  db_account;
+    sqlite_friends  db_friends;
+    sqlite_info     db_info;
+    sqlite_cache    db_cache;
+
+    if(db_account.open_info()
+        && db_friends.open_info()
+           && db_info.open_info()
+              && db_cache.open_cache())
+    {
+        server_task t;
+        t.init_data(&db_account,&db_friends,&db_info,&db_cache);
+
+        inter_server s;
+        s.func_bind(t.fn_open,t.fn_message,t.fn_close);
+        s.open();
+    }
+    else vlogw("open data failed");
 
     vlogd("== server end ==");
 }
@@ -295,7 +310,6 @@ void test_7()
             bool ok = sql.insert_account(i,"123456");
             (ok == true ? vlogd($(ok)) : vloge($(ok)));
         }
-
     }
     {
         vector<string> data;
@@ -436,12 +450,161 @@ void test_7()
     }
 }
 
+//账号下发
+void test_8()
+{
+    auto fn_select = [](sqlite_ac_abs *sql,string table){
+        vector<string> data;
+        bool ok = sql->select_db(table,data);
+        (ok == true ? vlogd($(ok) $(table)) : vloge($(ok) $(table)));
+        for(auto a:data)
+        {
+            vlogi("vec: " << a);
+        }
+    };
+
+    auto fn_vec = [](vector<int64> data){
+        for(auto a:data)
+        {
+            vlogi("sfvec: " << a);
+        }
+    };
+
+    sqlite_account sqla;
+    sqlite_friends sqlf;
+    sqlite_info sqli;
+
+    vlogd("== open_info ==");
+    {
+        {
+            bool ok = sqla.open_info();
+            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        }
+        {
+            bool ok = sqlf.open_info();
+            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        }
+        {
+            bool ok = sqli.open_info();
+            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        }
+        {
+            bool ok = sqla.create_table();
+            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        }
+        {
+            bool ok = sqlf.create_table();
+            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        }
+        {
+            bool ok = sqli.create_table();
+            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        }
+    }
+
+    int v = 100000000;
+    {
+        vlogd("== insert_account ==");
+        for(int i=v;i<v+10;i++)
+        {
+            bool ok = sqla.insert_account(i,"123456");
+            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        }
+
+        vector<int64> data;
+        {
+            bool ok = sqla.select_account(data);
+            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        }
+        fn_vec(data);
+
+        vlogd("== insert_friends ==");
+        {
+            for(int i=0;i<data.size();i++)
+            {
+                int64 ac = data[i];
+                for(int j=i;j<data.size();j++)
+                {
+                    int64 fs = data[j];
+                    bool ok = sqlf.insert_friends(ac,fs);
+                    (ok == true ? vlogd($(ok)) : (ac == fs ? vlogd($(ok)) : vloge($(ok))));
+                }
+            }
+        }
+
+        vlogd("== insert_info ==");
+        for(int i=0;i<data.size();i++)
+        {
+            int64 account = data[i];
+            int64 phone = std::stoll("1100" + std::to_string(i));
+            int64 age = 18+i;
+            int64 sex = (i%2 == 0 ? 0:1);
+            string nickname = "test_" + std::to_string(account);
+            string location = "zhong_" + std::to_string(i);
+            string icon = "/path/default";
+            bool ok = sqli.insert_info({account,phone,age,sex,nickname,location,icon});
+            (ok == true ? vlogd($(ok)) : vloge($(ok) $(account)));
+        }
+    }
+
+    vlogd("== fn_select ==");
+    {
+        fn_select(&sqla,sqla.get_table());
+        fn_select(&sqlf,sqlf.get_table());
+        fn_select(&sqli,sqli.get_table());
+    }
+
+    vlogd("== drop_db ==");
+//    {
+//        {
+//            bool ok = sqla.drop_db(sqlf.get_table());
+//            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+//        }
+//        {
+//            bool ok = sqla.drop_db(sqli.get_table());
+//            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+//        }
+//        {
+//            bool ok = sqla.drop_db(sqla.get_table());
+//            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+//        }
+//    }
+}
+
+//文件转换
+void test_9()
+{
+    vlogd("== server files ==");
+
+    sqlite_account  db_account;
+    sqlite_friends  db_friends;
+    sqlite_info     db_info;
+    sqlite_cache    db_cache;
+
+    if(db_account.open_info()
+       && db_friends.open_info()
+       && db_info.open_info()
+       && db_cache.open_cache())
+    {
+        server_files t;
+        t.init_data(&db_account,&db_friends,&db_info,&db_cache);
+
+        inter_server s;
+        s.func_bind(t.fn_open,t.fn_message,t.fn_close);
+        s.open();
+    }
+    else vlogw("open data failed");
+
+    vlogd("== server files end ==");
+
+}
+
 int main()
 {
     Tvlogs::get()->set_level(vlevel4::e_info);
     vlogi("== begin ==");
 
-    int ret = 7;
+    int ret = 5;
     if(ret == 1) test_1();
     else if(ret == 2) test_2();
     else if(ret == 3) test_3();
@@ -449,7 +612,8 @@ int main()
     else if(ret == 5) test_5();
     else if(ret == 6) test_6();
     else if(ret == 7) test_7();
-
+    else if(ret == 8) test_8();
+    else if(ret == 9) test_9();
 
     vloge("== end ==");
 

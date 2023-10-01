@@ -97,10 +97,24 @@ CMakeFiles/simple_server.dir/src/make_tools.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_server.dir/src/make_tools.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/red/open/github/simple_server/src/make_tools.cpp -o CMakeFiles/simple_server.dir/src/make_tools.cpp.s
 
+CMakeFiles/simple_server.dir/src/server_files.cpp.o: CMakeFiles/simple_server.dir/flags.make
+CMakeFiles/simple_server.dir/src/server_files.cpp.o: /home/red/open/github/simple_server/src/server_files.cpp
+CMakeFiles/simple_server.dir/src/server_files.cpp.o: CMakeFiles/simple_server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/red/open/github/simple_server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/simple_server.dir/src/server_files.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/simple_server.dir/src/server_files.cpp.o -MF CMakeFiles/simple_server.dir/src/server_files.cpp.o.d -o CMakeFiles/simple_server.dir/src/server_files.cpp.o -c /home/red/open/github/simple_server/src/server_files.cpp
+
+CMakeFiles/simple_server.dir/src/server_files.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/simple_server.dir/src/server_files.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/red/open/github/simple_server/src/server_files.cpp > CMakeFiles/simple_server.dir/src/server_files.cpp.i
+
+CMakeFiles/simple_server.dir/src/server_files.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_server.dir/src/server_files.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/red/open/github/simple_server/src/server_files.cpp -o CMakeFiles/simple_server.dir/src/server_files.cpp.s
+
 CMakeFiles/simple_server.dir/src/server_task.cpp.o: CMakeFiles/simple_server.dir/flags.make
 CMakeFiles/simple_server.dir/src/server_task.cpp.o: /home/red/open/github/simple_server/src/server_task.cpp
 CMakeFiles/simple_server.dir/src/server_task.cpp.o: CMakeFiles/simple_server.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/red/open/github/simple_server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/simple_server.dir/src/server_task.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/red/open/github/simple_server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/simple_server.dir/src/server_task.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/simple_server.dir/src/server_task.cpp.o -MF CMakeFiles/simple_server.dir/src/server_task.cpp.o.d -o CMakeFiles/simple_server.dir/src/server_task.cpp.o -c /home/red/open/github/simple_server/src/server_task.cpp
 
 CMakeFiles/simple_server.dir/src/server_task.cpp.i: cmake_force
@@ -114,7 +128,7 @@ CMakeFiles/simple_server.dir/src/server_task.cpp.s: cmake_force
 CMakeFiles/simple_server.dir/src/sqlite3.c.o: CMakeFiles/simple_server.dir/flags.make
 CMakeFiles/simple_server.dir/src/sqlite3.c.o: /home/red/open/github/simple_server/src/sqlite3.c
 CMakeFiles/simple_server.dir/src/sqlite3.c.o: CMakeFiles/simple_server.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/red/open/github/simple_server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/simple_server.dir/src/sqlite3.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/red/open/github/simple_server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/simple_server.dir/src/sqlite3.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/simple_server.dir/src/sqlite3.c.o -MF CMakeFiles/simple_server.dir/src/sqlite3.c.o.d -o CMakeFiles/simple_server.dir/src/sqlite3.c.o -c /home/red/open/github/simple_server/src/sqlite3.c
 
 CMakeFiles/simple_server.dir/src/sqlite3.c.i: cmake_force
@@ -128,7 +142,7 @@ CMakeFiles/simple_server.dir/src/sqlite3.c.s: cmake_force
 CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o: CMakeFiles/simple_server.dir/flags.make
 CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o: /home/red/open/github/simple_server/src/sqlite_op.cpp
 CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o: CMakeFiles/simple_server.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/red/open/github/simple_server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/red/open/github/simple_server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o -MF CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o.d -o CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o -c /home/red/open/github/simple_server/src/sqlite_op.cpp
 
 CMakeFiles/simple_server.dir/src/sqlite_op.cpp.i: cmake_force
@@ -139,26 +153,44 @@ CMakeFiles/simple_server.dir/src/sqlite_op.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_server.dir/src/sqlite_op.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/red/open/github/simple_server/src/sqlite_op.cpp -o CMakeFiles/simple_server.dir/src/sqlite_op.cpp.s
 
+CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o: CMakeFiles/simple_server.dir/flags.make
+CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o: /home/red/open/github/simple_server/src/web_file_swap.cpp
+CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o: CMakeFiles/simple_server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/red/open/github/simple_server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o -MF CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o.d -o CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o -c /home/red/open/github/simple_server/src/web_file_swap.cpp
+
+CMakeFiles/simple_server.dir/src/web_file_swap.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/simple_server.dir/src/web_file_swap.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/red/open/github/simple_server/src/web_file_swap.cpp > CMakeFiles/simple_server.dir/src/web_file_swap.cpp.i
+
+CMakeFiles/simple_server.dir/src/web_file_swap.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_server.dir/src/web_file_swap.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/red/open/github/simple_server/src/web_file_swap.cpp -o CMakeFiles/simple_server.dir/src/web_file_swap.cpp.s
+
 # Object files for target simple_server
 simple_server_OBJECTS = \
 "CMakeFiles/simple_server.dir/src/main.cpp.o" \
 "CMakeFiles/simple_server.dir/src/make_tools.cpp.o" \
+"CMakeFiles/simple_server.dir/src/server_files.cpp.o" \
 "CMakeFiles/simple_server.dir/src/server_task.cpp.o" \
 "CMakeFiles/simple_server.dir/src/sqlite3.c.o" \
-"CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o"
+"CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o" \
+"CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o"
 
 # External object files for target simple_server
 simple_server_EXTERNAL_OBJECTS =
 
 simple_server: CMakeFiles/simple_server.dir/src/main.cpp.o
 simple_server: CMakeFiles/simple_server.dir/src/make_tools.cpp.o
+simple_server: CMakeFiles/simple_server.dir/src/server_files.cpp.o
 simple_server: CMakeFiles/simple_server.dir/src/server_task.cpp.o
 simple_server: CMakeFiles/simple_server.dir/src/sqlite3.c.o
 simple_server: CMakeFiles/simple_server.dir/src/sqlite_op.cpp.o
+simple_server: CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o
 simple_server: CMakeFiles/simple_server.dir/build.make
 simple_server: /home/red/open/github/simple_server/lib/libhv.so
 simple_server: CMakeFiles/simple_server.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/red/open/github/simple_server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable simple_server"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/red/open/github/simple_server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable simple_server"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/simple_server.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

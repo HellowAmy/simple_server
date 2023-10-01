@@ -15,6 +15,10 @@ add_executable(${PRO_NAME} ${SRC_ALL}
         src/server_task.cpp
         include/server_task.h
         ../simple_chat/web_protocol.h
+        src/web_file_swap.cpp
+        include/web_file_swap.h
+        src/server_files.cpp
+        include/server_files.h
 )
 
 target_link_libraries(${PRO_NAME} PRIVATE ${LIB_ALL})

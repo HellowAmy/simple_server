@@ -148,6 +148,7 @@ public:
     bool update_account(int64 account,string passwd);
     bool delete_account(int64 account);
     bool select_account(int64 account,string &passwd);
+    bool select_account(vector<int64> &vec);
 
     data get_data();
 

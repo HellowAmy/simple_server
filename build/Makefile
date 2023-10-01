@@ -177,6 +177,30 @@ src/make_tools.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_server.dir/build.make CMakeFiles/simple_server.dir/src/make_tools.cpp.s
 .PHONY : src/make_tools.cpp.s
 
+src/server_files.o: src/server_files.cpp.o
+.PHONY : src/server_files.o
+
+# target to build an object file
+src/server_files.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_server.dir/build.make CMakeFiles/simple_server.dir/src/server_files.cpp.o
+.PHONY : src/server_files.cpp.o
+
+src/server_files.i: src/server_files.cpp.i
+.PHONY : src/server_files.i
+
+# target to preprocess a source file
+src/server_files.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_server.dir/build.make CMakeFiles/simple_server.dir/src/server_files.cpp.i
+.PHONY : src/server_files.cpp.i
+
+src/server_files.s: src/server_files.cpp.s
+.PHONY : src/server_files.s
+
+# target to generate assembly for a file
+src/server_files.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_server.dir/build.make CMakeFiles/simple_server.dir/src/server_files.cpp.s
+.PHONY : src/server_files.cpp.s
+
 src/server_task.o: src/server_task.cpp.o
 .PHONY : src/server_task.o
 
@@ -249,6 +273,30 @@ src/sqlite_op.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_server.dir/build.make CMakeFiles/simple_server.dir/src/sqlite_op.cpp.s
 .PHONY : src/sqlite_op.cpp.s
 
+src/web_file_swap.o: src/web_file_swap.cpp.o
+.PHONY : src/web_file_swap.o
+
+# target to build an object file
+src/web_file_swap.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_server.dir/build.make CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o
+.PHONY : src/web_file_swap.cpp.o
+
+src/web_file_swap.i: src/web_file_swap.cpp.i
+.PHONY : src/web_file_swap.i
+
+# target to preprocess a source file
+src/web_file_swap.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_server.dir/build.make CMakeFiles/simple_server.dir/src/web_file_swap.cpp.i
+.PHONY : src/web_file_swap.cpp.i
+
+src/web_file_swap.s: src/web_file_swap.cpp.s
+.PHONY : src/web_file_swap.s
+
+# target to generate assembly for a file
+src/web_file_swap.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_server.dir/build.make CMakeFiles/simple_server.dir/src/web_file_swap.cpp.s
+.PHONY : src/web_file_swap.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -264,6 +312,9 @@ help:
 	@echo "... src/make_tools.o"
 	@echo "... src/make_tools.i"
 	@echo "... src/make_tools.s"
+	@echo "... src/server_files.o"
+	@echo "... src/server_files.i"
+	@echo "... src/server_files.s"
 	@echo "... src/server_task.o"
 	@echo "... src/server_task.i"
 	@echo "... src/server_task.s"
@@ -273,6 +324,9 @@ help:
 	@echo "... src/sqlite_op.o"
 	@echo "... src/sqlite_op.i"
 	@echo "... src/sqlite_op.s"
+	@echo "... src/web_file_swap.o"
+	@echo "... src/web_file_swap.i"
+	@echo "... src/web_file_swap.s"
 .PHONY : help
 
 

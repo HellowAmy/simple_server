@@ -27,6 +27,8 @@ server_task::server_task()
     ADD_TASK(login,task_login);
     ADD_TASK(swap_msg,task_swap);
     ADD_TASK(friends_list,task_friends_list);
+    ADD_TASK(friends_status,task_friends_status);
+
 }
 
 server_task::~server_task()
@@ -74,7 +76,7 @@ void server_task::close(const sp_channel &channel)
 {
     auto sp_account = channel->getContextPtr<int64>();
     move_connect_th(*sp_account);
-    vlogi("close: " $(*sp_account));
+    vlogd("close: " $(*sp_account));
 }
 
 bool server_task::check_sjson_head(string flg)
@@ -83,16 +85,13 @@ bool server_task::check_sjson_head(string flg)
     return false;
 }
 
-bool server_task::init()
+void server_task::init_data(sqlite_account *account,sqlite_friends *friends,sqlite_info *info,sqlite_cache *cache)
 {
-    if(_db_account.open_info() == false) return false;
-    if(_db_friends.open_info() == false) return false;
-    if(_db_info.open_info() == false) return false;
-    if(_db_cache.open_cache() == false) return false;
-    return true;
+    _db_account    = account;
+    _db_friends    = friends;
+    _db_info       = info;
+    _db_cache      = cache;
 }
-
-
 
 void server_task::add_connect_th(int64 account, const sp_channel &channel)
 {
@@ -123,7 +122,7 @@ void server_task::task_login(const sp_channel &channel, const string &sjson)
     {
         //账号查库
         string passwd_db;
-        if(_db_account.select_account(account,passwd_db))
+        if(_db_account->select_account(account,passwd_db))
         {
             //信息验证
             if(passwd_db == passwd)
@@ -157,7 +156,7 @@ void server_task::task_swap(const sp_channel &channel, const string &sjson)
         else
         {
             //失败，加入失败记录，离线发送
-            if(_db_cache.insert_cache(target,sjson))
+            if(_db_cache->insert_cache(target,sjson))
             { ERR_BACK(CS_ERR_SWAP_SJSON); }
         }
     }
@@ -172,7 +171,7 @@ void server_task::task_friends_list(const sp_channel &channel, const string &sjs
     {
         //查好友库
         vector<string> vec_friends;
-        if(_db_friends.select_friends(account,vec_friends))
+        if(_db_friends->select_friends(account,vec_friends))
         {
             //反馈信息
             string scev = set_json_vec(vec_friends);
@@ -186,22 +185,40 @@ void server_task::task_friends_list(const sp_channel &channel, const string &sjs
 void server_task::task_friends_status(const sp_channel &channel, const string &sjson)
 {
     //解析json
-    int64 account;
-    if(get_friends_status(sjson,account))
+    string svec_ac_fs;
+    if(get_friends_status(sjson,svec_ac_fs))
     {
-        //查信息库
-        sqlite_info::data fdata;
-        if(_db_info.select_info(account,fdata))
-        {
-            //查在线列表
-            bool online = true;
-            if(find_connect_th(account) == nullptr) online = false;
+        vector<string> vec_ac = get_json_vec(svec_ac_fs);
+        vector<string> vec_ac_info;
+        vector<int64> vec_aci;
 
-            //反馈信息
-            string s = set_friends_status_back(account,fdata.nickname,fdata.icon,online,true);
-            channel->send(s);
+        //转类型
+        try {
+            for(const auto &a:vec_ac)
+            {
+                vec_aci.push_back(std::stoll(a));
+            }
+        } catch(...) {}
+
+        //组合好友信息
+        for(auto account:vec_aci)
+        {
+            //查信息库
+            sqlite_info::data fdata;
+            if(_db_info->select_info(account,fdata))
+            {
+                //查在线列表
+                bool online = true;
+                if(find_connect_th(account) == nullptr) online = false;
+                vec_ac_info.push_back(set_ac_info_json(account,fdata.nickname,fdata.icon,online));
+            }
+            else ERR_BACK(CS_ERR_SELECT_DATA);
         }
-        else ERR_BACK(CS_ERR_SELECT_DATA);
+
+        //反馈信息
+        string svec = set_json_vec(vec_ac_info); //生成svec的json格式字符串
+        string s = set_friends_status_back(svec,true);
+        channel->send(s);
     }
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }

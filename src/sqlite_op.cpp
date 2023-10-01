@@ -180,6 +180,28 @@ bool sqlite_account::select_account(int64 account, string &passwd)
     return std::get<0>(tup);
 }
 
+bool sqlite_account::select_account(vector<int64> &vec)
+{
+    std::tuple<string,vector<int64>*> tup = std::make_tuple(_data.account,&vec);
+
+    auto fn_cb = [](void *data, int argc, char **argv, char **name){
+        auto ptup = (std::tuple<string,vector<int64>*>*)data;
+        string fname = std::get<0>(*ptup);
+        vector<int64>* fdata = std::get<1>(*ptup);
+        for (int i=0; i<argc;i++)
+        {
+            try {
+                if(string(name[i]) == fname) fdata->push_back(std::stoll(argv[i]));
+            } catch (...){}
+        }
+        return 0;
+    };
+
+    string sql("SELECT * FROM {0} ;");
+    sql = sformat(sql)(_table);
+    return exec_db(sql,fn_cb,&tup);
+}
+
 
 sqlite_friends::sqlite_friends()
 {

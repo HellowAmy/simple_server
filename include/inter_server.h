@@ -43,7 +43,7 @@ public:
     WebSocketServer* get_sv() { return &_wsv; }
     WebSocketService* get_sc() { return &_wsc; }
 
-private:
+protected:
     WebSocketServer _wsv;
     WebSocketService _wsc;
 };

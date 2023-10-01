@@ -90,13 +90,22 @@
 		<Unit filename="/home/red/open/github/simple_server/include/inter_server.h">
 			<Option target="simple_server"/>
 		</Unit>
+		<Unit filename="/home/red/open/github/simple_server/include/server_files.h">
+			<Option target="simple_server"/>
+		</Unit>
 		<Unit filename="/home/red/open/github/simple_server/include/server_task.h">
+			<Option target="simple_server"/>
+		</Unit>
+		<Unit filename="/home/red/open/github/simple_server/include/web_file_swap.h">
 			<Option target="simple_server"/>
 		</Unit>
 		<Unit filename="/home/red/open/github/simple_server/src/main.cpp">
 			<Option target="simple_server"/>
 		</Unit>
 		<Unit filename="/home/red/open/github/simple_server/src/make_tools.cpp">
+			<Option target="simple_server"/>
+		</Unit>
+		<Unit filename="/home/red/open/github/simple_server/src/server_files.cpp">
 			<Option target="simple_server"/>
 		</Unit>
 		<Unit filename="/home/red/open/github/simple_server/src/server_task.cpp">
@@ -106,6 +115,9 @@
 			<Option target="simple_server"/>
 		</Unit>
 		<Unit filename="/home/red/open/github/simple_server/src/sqlite_op.cpp">
+			<Option target="simple_server"/>
+		</Unit>
+		<Unit filename="/home/red/open/github/simple_server/src/web_file_swap.cpp">
 			<Option target="simple_server"/>
 		</Unit>
 		<Unit filename="/home/red/open/github/simple_server/util/Tvlog.h">
