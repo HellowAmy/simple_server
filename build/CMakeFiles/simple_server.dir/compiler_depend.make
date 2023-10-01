@@ -446,6 +446,12 @@ CMakeFiles/simple_server.dir/src/main.cpp.o: /home/red/open/github/simple_server
   /home/red/open/github/simple_server/include/sqlite3/sqlite3.h \
   /home/red/open/github/simple_server/util/Tvlog.h \
   /home/red/open/github/simple_server/include/server_files.h \
+  /home/red/open/github/simple_chat/swap_files.h \
+  /home/red/open/github/simple_chat/Tvlog.h \
+  /home/red/open/github/simple_server/include/make_tools.h \
+  /usr/include/c++/12/set \
+  /usr/include/c++/12/bits/stl_set.h \
+  /usr/include/c++/12/bits/stl_multiset.h \
   /home/red/open/github/simple_server/include/sqlite_op.h
 
 CMakeFiles/simple_server.dir/src/make_tools.cpp.o: /home/red/open/github/simple_server/src/make_tools.cpp \
@@ -937,6 +943,16 @@ CMakeFiles/simple_server.dir/src/server_files.cpp.o: /home/red/open/github/simpl
   /usr/include/c++/12/bits/fs_dir.h \
   /usr/include/c++/12/bits/fs_ops.h \
   /usr/include/c++/12/any \
+  /home/red/open/github/simple_chat/swap_files.h \
+  /usr/include/c++/12/fstream \
+  /usr/include/x86_64-linux-gnu/c++/12/bits/basic_file.h \
+  /usr/include/x86_64-linux-gnu/c++/12/bits/c++io.h \
+  /usr/include/c++/12/bits/fstream.tcc \
+  /home/red/open/github/simple_chat/Tvlog.h \
+  /usr/include/c++/12/iostream \
+  /usr/include/c++/12/mutex \
+  /usr/include/c++/12/bits/std_mutex.h \
+  /usr/include/c++/12/bits/unique_lock.h \
   /home/red/open/github/simple_server/include/inter_server.h \
   /home/red/open/github/simple_server/include/hv/WebSocketServer.h \
   /home/red/open/github/simple_server/include/hv/HttpServer.h \
@@ -1039,7 +1055,6 @@ CMakeFiles/simple_server.dir/src/server_files.cpp.o: /home/red/open/github/simpl
   /home/red/open/github/simple_server/include/hv/hbase.h \
   /home/red/open/github/simple_server/include/hv/hdef.h \
   /home/red/open/github/simple_server/include/hv/hstring.h \
-  /usr/include/c++/12/iostream \
   /home/red/open/github/simple_server/include/hv/hmap.h \
   /home/red/open/github/simple_server/include/hv/hfile.h \
   /home/red/open/github/simple_server/include/hv/hbuf.h \
@@ -1054,9 +1069,6 @@ CMakeFiles/simple_server.dir/src/server_files.cpp.o: /home/red/open/github/simpl
   /home/red/open/github/simple_server/include/hv/Buffer.h \
   /home/red/open/github/simple_server/include/hv/HttpContext.h \
   /home/red/open/github/simple_server/include/hv/WebSocketChannel.h \
-  /usr/include/c++/12/mutex \
-  /usr/include/c++/12/bits/std_mutex.h \
-  /usr/include/c++/12/bits/unique_lock.h \
   /home/red/open/github/simple_server/include/hv/wsdef.h \
   /usr/lib/gcc/x86_64-linux-gnu/12/include/stdbool.h \
   /home/red/open/github/simple_server/include/hv/hmath.h \
@@ -1064,10 +1076,14 @@ CMakeFiles/simple_server.dir/src/server_files.cpp.o: /home/red/open/github/simpl
   /home/red/open/github/simple_server/include/format.h \
   /home/red/open/github/simple_server/include/sqlite3/sqlite3.h \
   /home/red/open/github/simple_server/util/Tvlog.h \
-  /usr/include/c++/12/fstream \
-  /usr/include/x86_64-linux-gnu/c++/12/bits/basic_file.h \
-  /usr/include/x86_64-linux-gnu/c++/12/bits/c++io.h \
-  /usr/include/c++/12/bits/fstream.tcc
+  /home/red/open/github/simple_server/include/make_tools.h \
+  /usr/include/c++/12/random \
+  /usr/include/c++/12/bits/random.h \
+  /usr/include/x86_64-linux-gnu/c++/12/bits/opt_random.h \
+  /usr/include/c++/12/bits/random.tcc \
+  /usr/include/c++/12/set \
+  /usr/include/c++/12/bits/stl_set.h \
+  /usr/include/c++/12/bits/stl_multiset.h
 
 CMakeFiles/simple_server.dir/src/server_task.cpp.o: /home/red/open/github/simple_server/src/server_task.cpp \
   /usr/include/stdc-predef.h \
@@ -2340,6 +2356,10 @@ CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o: /home/red/open/github/simp
 
 /home/red/open/github/simple_server/src/make_tools.cpp:
 
+/usr/include/c++/12/bits/stl_set.h:
+
+/home/red/open/github/simple_chat/swap_files.h:
+
 /home/red/open/github/simple_server/include/sqlite3/sqlite3.h:
 
 /home/red/open/github/simple_server/include/format.h:
@@ -2732,6 +2752,8 @@ CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o: /home/red/open/github/simp
 
 /usr/include/x86_64-linux-gnu/c++/12/bits/c++config.h:
 
+/usr/include/c++/12/set:
+
 /usr/include/asm-generic/int-ll64.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
@@ -2976,6 +2998,8 @@ CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o: /home/red/open/github/simp
 
 /usr/include/c++/12/bits/allocated_ptr.h:
 
+/home/red/open/github/simple_chat/Tvlog.h:
+
 /usr/include/c++/12/pstl/glue_algorithm_defs.h:
 
 /usr/include/c++/12/cstdlib:
@@ -3099,6 +3123,8 @@ CMakeFiles/simple_server.dir/src/web_file_swap.cpp.o: /home/red/open/github/simp
 /usr/include/c++/12/bits/basic_string.tcc:
 
 /usr/include/c++/12/bits/stl_map.h:
+
+/usr/include/c++/12/bits/stl_multiset.h:
 
 /usr/include/dirent.h:
 

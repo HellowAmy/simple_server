@@ -1,8 +1,10 @@
 set(PRO_NAME "simple_server")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_minimum_required(VERSION 3.0.0)
-
 project(${PRO_NAME} VERSION 0.1.0 LANGUAGES C CXX)
+
 
 file(GLOB SRC_ALL "src/*.cpp" "src/*.c")
 file(GLOB LIB_ALL "lib/*.so")

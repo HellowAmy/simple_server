@@ -13,5 +13,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/red/open/github/simple_server/include
 
-CXX_FLAGS = -g -fdiagnostics-color=always
+CXX_FLAGS = -g -std=gnu++17 -fdiagnostics-color=always
 

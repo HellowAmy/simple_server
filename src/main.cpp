@@ -213,7 +213,7 @@ void test_5()
 
         inter_server s;
         s.func_bind(t.fn_open,t.fn_message,t.fn_close);
-        s.open();
+        s.open(CS_PORT_TASKS);
     }
     else vlogw("open data failed");
 
@@ -576,24 +576,10 @@ void test_9()
 {
     vlogd("== server files ==");
 
-    sqlite_account  db_account;
-    sqlite_friends  db_friends;
-    sqlite_info     db_info;
-    sqlite_cache    db_cache;
-
-    if(db_account.open_info()
-       && db_friends.open_info()
-       && db_info.open_info()
-       && db_cache.open_cache())
-    {
-        server_files t;
-        t.init_data(&db_account,&db_friends,&db_info,&db_cache);
-
-        inter_server s;
-        s.func_bind(t.fn_open,t.fn_message,t.fn_close);
-        s.open();
-    }
-    else vlogw("open data failed");
+    server_files t;
+    inter_server s;
+    s.func_bind(t.fn_open,t.fn_message,t.fn_close);
+    s.open(CS_PORT_FILES);
 
     vlogd("== server files end ==");
 
@@ -604,16 +590,16 @@ int main()
     Tvlogs::get()->set_level(vlevel4::e_info);
     vlogi("== begin ==");
 
-    int ret = 5;
-    if(ret == 1) test_1();
-    else if(ret == 2) test_2();
-    else if(ret == 3) test_3();
-    else if(ret == 4) test_4();
-    else if(ret == 5) test_5();
-    else if(ret == 6) test_6();
-    else if(ret == 7) test_7();
-    else if(ret == 8) test_8();
-    else if(ret == 9) test_9();
+    int ret = 9;
+    if(ret == 1) test_1();          //网络连接
+    else if(ret == 2) test_2();     //账号密码
+    else if(ret == 3) test_3();     //随机账号
+    else if(ret == 4) test_4();     //测试输入
+    else if(ret == 5) test_5();     //网络转发
+    else if(ret == 6) test_6();     //缓存测试
+    else if(ret == 7) test_7();     //外键约束
+    else if(ret == 8) test_8();     //账号下发
+    else if(ret == 9) test_9();     //文件转换
 
     vloge("== end ==");
 

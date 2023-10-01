@@ -364,4 +364,9 @@ CMakeFiles/simple_server.dir/src/main.cpp.o: \
  /home/red/open/github/simple_server/include/../include/sqlite3/sqlite3.h \
  /home/red/open/github/simple_server/include/../util/Tvlog.h \
  /home/red/open/github/simple_server/include/server_files.h \
+ /home/red/open/github/simple_server/include/../../simple_chat/swap_files.h \
+ /home/red/open/github/simple_server/include/../../simple_chat/Tvlog.h \
+ /home/red/open/github/simple_server/include/make_tools.h \
+ /usr/include/c++/12/set /usr/include/c++/12/bits/stl_set.h \
+ /usr/include/c++/12/bits/stl_multiset.h \
  /home/red/open/github/simple_server/include/sqlite_op.h
