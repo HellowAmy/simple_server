@@ -25,13 +25,13 @@ using std::mutex;
 
 class server_files
 {
-public:
-    struct fs_data
-    {
-        int64 time;
-        int64 length_max;
-        string filename;
-    };
+//public:
+//    struct fs_data
+//    {
+//        int64 time;
+//        int64 length_max;
+//        string filename;
+//    };
 public:
 
     server_files();
@@ -43,10 +43,9 @@ public:
     function<void(const sp_channel&)> fn_close;
 
 protected:
-    string _swap_path;
+    mutex _mut_sjson;
+    string _path_temp_save;
     swap_files _swap_fs;
-    mutex _mut_swap_file;
-    map<int64,fs_data> _map_swap_file;
     map<string,function<void(const sp_channel&,const string &)>> _map_task;
 
 //    sqlite_account  *_db_account;
@@ -62,9 +61,10 @@ protected:
     void send_msg(const sp_channel &channel,const string &sjson);
     void send_data(const sp_channel &channel,int64 id, const string &msg);
 
-    int64 add_map_swap_th(int64 id,fs_data data);
-    int64 add_data_to_map(int64 id,const fs_data &data);
-    void move_map_swap_th(int64 id);
+    int64 make_fs_id();
+//    int64 add_map_swap_th(int64 id,fs_data data);
+//    int64 add_data_to_map(int64 id,const fs_data &data);
+//    void move_map_swap_th(int64 id);
 
 
     bool check_sjson_head(string flg);
@@ -78,7 +78,6 @@ protected:
     void task_files_create_download(const sp_channel &channel,const string &sjson);
     void task_files_begin_download(const sp_channel &channel,const string &sjson);
     void task_files_cancel_download(const sp_channel &channel,const string &sjson);
-
 };
 
 
