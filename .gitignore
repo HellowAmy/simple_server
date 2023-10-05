@@ -1,0 +1,7 @@
+build/*
+!build/
+*/build*/*
+*.user
+/temp_swap_file
+/temp_swap_file/
+/temp_swap_file/*
