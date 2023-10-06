@@ -315,4 +315,6 @@ void print_con(Tit begin,Tit end,int len,const std::string &flg)
 //== 容器打印格式 ==
 
 
+#define vlogif(ok,...) (ok ? vlogd(__VA_ARGS__) : vloge(__VA_ARGS__))
+
 #endif // TVLOG_H

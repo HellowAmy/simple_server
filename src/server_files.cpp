@@ -1,6 +1,8 @@
 
 #include "server_files.h"
 
+#include "../util/Tvlog.h"
+
 #define ADD_TASK(str) _map_task.emplace(str,std::bind(&server_files::task_##str,this,_1,_2))
 
 //#define ERR_BACK(err)                                               \
@@ -32,46 +34,14 @@ server_files::server_files()
 
 void server_files::open(const sp_channel &channel, const sp_http &http)
 {
-//    //发送数据
-//    auto fn_send = [=](int64 id,const string &data){
-//        vlogi("fn_send");
-//        auto sp_channel = find_channel_send_map(id);
-//        return true;
-//    };
+    bool ok = _fs_swap.add_id_channel(channel->id());
+    vlogif(ok,$(ok));
+
+//    channel->setContextPtr(std::make_shared<fs_swap_id>(std::set<int64>(),std::set<int64>()));
 
     channel->onwrite = [=](hv::Buffer* buf){
-
-//        vlogi("onwrite");
-//        if(string((char*)buf->data()) == WS_SERVER_PONG_FRAME)
-//        {
-//            int64 id;
-//            if(pop_send_que(id))
-//            {
-//                vlogi("pop_send_que:" $(id));
-//                bool is_finish = _swap_fs.add_data_send(id,fn_send);
-//
-//                string s = set_files_finish_download(id,is_finish);
-//                send_msg(channel,s);
-//
-//                if(is_finish)
-//                {
-//                    vlogd("finish:" $(id));
-//                    _swap_fs.close_file_send(id);
-//                }
-//            }
-//            vlogi("WS_SERVER_PONG_FRAME");
-//        }
-//
-////        if(pop_send_que)
-////        find_channel_send_map()
-//
-////        vlogi($(buf->data()) $(buf->size()));
-//        size_t size = channel->writeBufsize();
-//        vlogd($(size) $(buf->size()));
-
         if(string((char*)buf->data()) == WS_SERVER_PING_FRAME) vlogd("onwrite: WS_SERVER_PING_FRAME 111");
         else if(string((char*)buf->data()) == WS_SERVER_PONG_FRAME) vlogd("onwrite: WS_SERVER_PING_FRAME 222");
-
     };
 
     vlogi("open:" $(http->path));
@@ -91,17 +61,20 @@ void server_files::message(const sp_channel &channel, const string &msg)
 void server_files::close(const sp_channel &channel)
 {
     vlogi("close" );
-    auto it = channel->getContextPtr<fs_data>();
-    if(it != nullptr)
+
+
+    auto it = _fs_swap.get_channel_map();
+    vlogi($(it.size()));
+    for(auto a:it)
     {
-        if(it->type == e_recv) _swap_fs.close_file_recv(it->id);
-        else if(it->type == e_send)
-        {
-            _swap_fs.close_file_send(it->id);
-            remove_send_map(it->id);
-        }
-        vlogd("close: " $(it->type) $(it->id));
+        shared_ptr<files_channel::fs_channel> sp = a.second;
+        vlogi($(sp->_set_recv.size()) $(sp->_set_send.size()));
     }
+
+    //连接意外断开，清空发送与接收流
+    _fs_swap.remove_id_channel(channel->id());
+
+//    close_file_channel(channel);
 }
 
 bool server_files::check_sjson_head(string flg)
@@ -114,6 +87,7 @@ bool server_files::send_msg(const sp_channel &channel,const string &sjson)
 {
     string s = set_files_json(sjson);
     int ret = channel->send(s);
+    if(ret <= 0) vloge("send_msg failed:" << $(sjson));
     return ret > 0;
 }
 
@@ -121,6 +95,7 @@ bool server_files::send_data(const sp_channel &channel,int64 id, const string &m
 {
     string s = set_files_binary(id,msg);
     int ret = channel->send(s);
+    if(ret <= 0) vloge("send_data failed:" << $(msg));
     return ret > 0;
 }
 
@@ -129,7 +104,7 @@ int64 server_files::make_fs_id()
     int64 id = make_tools::rand_num(100000000,999999999);
     string abs_path = _path_temp_save + std::to_string(id);
 
-    if(swap_files::is_exists(abs_path) == false) return id;
+    if(files_info::is_exists(abs_path) == false) return id;
     else return make_fs_id();
 }
 
@@ -177,7 +152,7 @@ void server_files::transmit_msg(const sp_channel &channel, const string &msg)
 
 void server_files::task_recv_binary_data(int64 id, const string &data)
 {
-    bool ok = _swap_fs.add_data_recv(id,data);
+    bool ok = _fs_swap.add_data_recv(id,data);
     if(ok == false) vlogw("err: task_recv_binary_data ");
 }
 
@@ -192,21 +167,24 @@ void server_files::task_files_create_upload(const sp_channel &channel, const str
     {
         //生成交换文件id
         int64 id = make_fs_id();
-        vlogi("create file id: " << $(id));
 
         //创建文件写入
-        channel->setContextPtr(std::make_shared<fs_data>(e_recv,id));
         string abs_path = _path_temp_save + std::to_string(id);
-        bool ok = _swap_fs.open_file_recv(id,length_max,abs_path);
-        if(ok == false) vloge("open file err" $(ok) $(id));
+        bool ok = _fs_swap.open_file_recv_channel(channel->id(),id,length_max,abs_path);
+//        bool ok = _swap_fs.open_file_recv(id,length_max,abs_path);
+//        if(ok)
+//        {
+//
+////            auto set_id = channel->getContextPtr<fs_swap_id>();
+////            set_id->_set_recv.emplace(id);
+//        }
+        vlogif(ok,$(ok) $(id));
 
         //反馈数据
         string s = set_files_create_upload_back(time,id,true);
         send_msg(channel,s);
     }
-    else vlogw("err: task_files_create_upload");
-
-    vlogi("task_files_create_upload: " << $(time) $(target) $(source) $(length_max) $(filename));
+    else vlogw("err: task_files_create_upload" << $(time) $(target) $(source) $(length_max) $(filename));
 }
 
 void server_files::task_files_finish_upload(const sp_channel &channel, const string &sjson)
@@ -217,30 +195,33 @@ void server_files::task_files_finish_upload(const sp_channel &channel, const str
     if(get_files_finish_upload(sjson,id,finish))
     {
         //判断文件大小是否相等
-        bool recv_full = false;
-        auto sp_recv = _swap_fs.find_fs_recv(id);
-        if(sp_recv->count_recv == sp_recv->length_max) recv_full = true;
+        bool recv_full = _fs_swap.check_length_recv(id);
+
+//        bool recv_full = false;
+//        auto sp_recv = _fs_swap.find_fs_recv(id);
+//        if(sp_recv->count_recv == sp_recv->length_max) recv_full = true;
 
         //完成文件接收，关闭文件流
-        _swap_fs.close_file_recv(id);
+        _fs_swap.close_file_recv_channel(channel->id(),id);
+
+//        close_file_recv(channel,id);
+//        _swap_fs.close_file_recv(id);
 
         //删除不完整文件
         bool is_recv_success = true;
         if(recv_full == false || finish == false)
         {
-            swap_files::remove_file(_path_temp_save + std::to_string(id));
+            files_info::remove_file(_path_temp_save + std::to_string(id));
             is_recv_success = false;
+            vlogw("upload file failed: " << $(id));
         }
+        else vlogd("upload file: " << $(id) $(is_recv_success));
 
         //反馈数据
         string s = set_files_finish_upload_back(id,is_recv_success);
         send_msg(channel,s);
-
-        vlogd("file finish: " << $(is_recv_success) $(recv_full) $(finish) $(sp_recv->count_recv) $(sp_recv->length_max));
     }
     else vlogw("err: task_files_finish_upload");
-
-    vlogi("task_files_finish_upload: " << $(id) $(is_swap) $(finish) );
 }
 
 //bool qweb_files::send_data(int64 id, const string &msg)
@@ -259,71 +240,84 @@ void server_files::task_files_finish_upload(const sp_channel &channel, const str
 
 void server_files::task_files_create_download(const sp_channel &channel, const string &sjson)
 {
-    vlogi("task_files_create_download");
-
     //发送数据
     auto fn_send = [=](int64 id,const string &data){
-        auto sp_channel = find_channel_send_map(id);
-        bool ok = send_data(sp_channel,id,data);
-
-        auto it = _swap_fs.find_fs_send(id);
-        if(it->count_send % (1024*1024*2) == 0) return false;
-        return ok;
+        return _fs_swap.check_linit_flux(send_data(channel,id,data),id);
     };
 
     int64 swap_id;
     if(get_files_create_download(sjson,swap_id))
     {
         //检查文件存在
-        channel->setContextPtr(std::make_shared<fs_data>(e_send,swap_id));
-        bool ret = false;
+        bool ok = false;
         int64 length_max = 0;
         string filename = std::to_string(swap_id);
         string path_file = _path_temp_save + filename;
-        if(swap_files::is_exists(path_file))
+        if(files_info::is_exists(path_file))
         {
-            length_max = swap_files::get_file_size(path_file);
-            ret = _swap_fs.open_file_send(swap_id,path_file,fn_send,false);
-            if(ret)
-            {
-                bool ok_add = add_send_map(swap_id,channel);
-                vlogw($(ok_add));
-            }
-            else vlogw("open file err: " $(swap_id) $(ret));
+            length_max = files_info::get_file_size(path_file);
+            ok = _fs_swap.open_file_send_channel(channel->id(), swap_id,path_file,fn_send);
+
+            vlogif(ok, $(channel->id()) $(swap_id) $(ok));
+
+//            if(ok)
+//            {
+////                auto set_id = channel->getContextPtr<fs_swap_id>();
+////                set_id->_set_send.emplace(swap_id);
+////                bool ok_add = add_send_map(swap_id,channel);
+//                vlogd("open file:" $(swap_id) $(ok));
+//            }
+//            else vlogw("open file err: " $(swap_id) $(ok));
         }
+        else vlogw("err: not exists" << $(path_file));
 
         //反馈数据
-        string s = set_files_create_download_back(swap_id,length_max,filename,ret);
+        string s = set_files_create_download_back(swap_id,length_max,filename,ok);
         send_msg(channel,s);
-
-        vlogi("task_files_create_download" $(ret));
     }
+    else vlogw("err: task_files_create_download");
 }
 
 void server_files::task_files_begin_download(const sp_channel &channel, const string &sjson)
 {
     //解析json
-    int64 swap_id;
+    int64 id;
     bool ok;
-    if(get_files_begin_download(sjson,swap_id,ok))
+    if(get_files_begin_download(sjson, id, ok))
     {
         if(ok)
         {
-            bool is_finish = _swap_fs.add_data_send(swap_id);
-            string s = set_files_finish_download(swap_id,is_finish);
+//            _fs_swap.add_send_queue()
+//            _fs_swap.start_send_queue();
+            bool is_finish = _fs_swap.add_data_send(id);// add_data_send_limit_flux(id);
+            string s = set_files_finish_download(id, is_finish);
             send_msg(channel,s);
-            vlogi("send part:" $(swap_id) $(ok));
+            vlogi("send part:" $(id) $(ok));
 
             if(is_finish)
             {
-                vlogd("finish:" $(swap_id));
-                _swap_fs.close_file_send(swap_id);
-//                remove_send_map(swap_id);
+                vlogd("finish:" $(id));
+                _fs_swap.close_file_send_channel(channel->id(),id);
 
+
+//                close_file_send(channel,id);
+
+//                _swap_fs.close_file_send(id);
+//                remove_send_map(id);
             }
         }
-        else _swap_fs.close_file_send(swap_id);
+        else
+        {
+            _fs_swap.close_file_send_channel(channel->id(),id);
+//            _fs_swap.remove_file_send(channel->id(), id);
+
+//            close_file_send(channel,id);
+//            _swap_fs.close_file_send(id);
+//            remove_send_map(id);
+            vlogw("task_files_begin_download failed: " $(id) $(ok));
+        }
     }
+    else vlogw("err: task_files_begin_download");
 }
 
 void server_files::task_files_cancel_download(const sp_channel &channel, const string &sjson)
@@ -331,43 +325,66 @@ void server_files::task_files_cancel_download(const sp_channel &channel, const s
     vlogi("task_files_cancel_download");
 }
 
-bool server_files::add_send_map(int64 id, const sp_channel &channel)
-{
-    std::unique_lock<mutex> lock(_mut_send_map);
-    auto it = _map_send.emplace(id,channel);
-    return it.second;
-}
+//void server_files::close_file_send(const sp_channel &channel,int64 id)
+//{
+//    _swap_fs.close_file_send(id);
+//    auto set_id = channel->getContextPtr<fs_swap_id>();
+//    set_id->_set_send.erase(id);
+//}
+//
+//void server_files::close_file_recv(const sp_channel &channel,int64 id)
+//{
+//    _swap_fs.close_file_recv(id);
+//    auto set_id = channel->getContextPtr<fs_swap_id>();
+//    set_id->_set_recv.erase(id);
+//}
+//
+//void server_files::close_file_channel(const sp_channel &channel)
+//{
+//    auto set_id = channel->getContextPtr<fs_swap_id>();
+//    for(auto id:set_id->_set_recv)
+//    { _swap_fs.close_file_recv(id); }
+//    for(auto id:set_id->_set_send)
+//    { _swap_fs.close_file_send(id); }
+//}
 
-void server_files::remove_send_map(int64 id)
-{
-    std::unique_lock<mutex> lock(_mut_send_map);
-    _map_send.erase(id);
-}
+//bool server_files::add_send_map(int64 id, const sp_channel &channel)
+//{
+//    std::unique_lock<mutex> lock(_mut_send_map);
+//    auto it = _map_send.emplace(id,channel);
+//    return it.second;
+//}
+//
+//void server_files::remove_send_map(int64 id)
+//{
+//    std::unique_lock<mutex> lock(_mut_send_map);
+//    _map_send.erase(id);
+//}
+//
+//sp_channel server_files::find_channel_send_map(int64 id)
+//{
+//    auto it = _map_send.find(id);
+//    if(it != _map_send.end()) return it->second;
+//    return nullptr;
+//}
 
-sp_channel server_files::find_channel_send_map(int64 id)
-{
-    auto it = _map_send.find(id);
-    if(it != _map_send.end()) return it->second;
-    return nullptr;
-}
-
-void server_files::push_send_que(int64 id)
-{
-    std::unique_lock<mutex> lock(_mut_send_que);
-    _que_send.push(id);
-}
-
-bool server_files::pop_send_que(int64 &id)
-{
-    std::unique_lock<mutex> lock(_mut_send_que);
-    if(_que_send.size() > 0)
-    {
-        id = _que_send.back();
-        _que_send.pop();
-        return true;
-    }
-    return false;
-}
+//void server_files::push_send_que(int64 id)
+//{
+//    std::unique_lock<mutex> lock(_mut_send_que);
+//    _que_send.push(id);
+//}
+//
+//bool server_files::pop_send_que(int64 &id)
+//{
+//    std::unique_lock<mutex> lock(_mut_send_que);
+//    if(_que_send.size() > 0)
+//    {
+//        id = _que_send.back();
+//        _que_send.pop();
+//        return true;
+//    }
+//    return false;
+//}
 
 
 

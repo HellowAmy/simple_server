@@ -3,7 +3,8 @@
 #define SERVER_FILES_H
 
 #include "../../simple_chat/web_protocol.h"
-#include "../../simple_chat/swap_files.h"
+//#include "../../simple_chat/swap_files.h"
+#include "../../simple_chat/files_transfer.h"
 #include "inter_server.h"
 #include "sqlite_op.h"
 #include "make_tools.h"
@@ -27,13 +28,19 @@ using std::mutex;
 class server_files
 {
 public:
-    enum swap_type{ e_send,e_recv };
-    struct fs_data
-    {
-        fs_data(swap_type n1,int64 n2) : type(n1),id(n2) {}
-        swap_type type;
-        int64 id;
-    };
+//    enum swap_type{ e_send,e_recv };
+//    struct fs_data
+//    {
+//        fs_data(swap_type n1,int64 n2) : type(n1),id(n2) {}
+//        swap_type type;
+//        int64 id;
+//    };
+//    struct fs_swap_id
+//    {
+//        fs_swap_id(set<int64> n1,set<int64> n2) : _set_recv(n1),_set_send(n2) {}
+//        set<int64> _set_recv;
+//        set<int64> _set_send;
+//    };
 
 public:
 
@@ -44,13 +51,13 @@ public:
     function<void(const sp_channel&)> fn_close;
 
 protected:
-    mutex _mut_send_map;
-    mutex _mut_send_que;
+//    mutex _mut_send_map;
+//    mutex _mut_send_que;
     string _path_temp_save;
-    swap_files _swap_fs;
+    files_channel _fs_swap;
     map<string,function<void(const sp_channel&,const string &)>> _map_task;
-    map<int64,sp_channel> _map_send;
-    queue<int64> _que_send;
+//    map<int64,sp_channel> _map_send;
+//    queue<int64> _que_send;
 
 
     bool add_send_map(int64 id,const sp_channel &channel);
@@ -59,6 +66,10 @@ protected:
 
     void push_send_que(int64 id);
     bool pop_send_que(int64 &id);
+
+//    void close_file_send(const sp_channel &channel,int64 id);
+//    void close_file_recv(const sp_channel &channel,int64 id);
+//    void close_file_channel(const sp_channel &channel);
 
 
     bool check_sjson_head(string flg);

@@ -8,7 +8,7 @@
 #include "format.h"
 #include "../include/sqlite3/sqlite3.h"
 
-#include "../util/Tvlog.h"
+//#include "../util/Tvlog.h"
 
 typedef const std::string& cstr;
 typedef long long int64;
