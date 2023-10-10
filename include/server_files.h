@@ -37,7 +37,6 @@ public:
 
 protected:
     string _path_temp;
-//    string _path_icon;
     files_channel _fs_swap;
     map<string,function<void(const sp_channel&,const string &)>> _map_task;
 
@@ -62,7 +61,6 @@ protected:
     void task_files_begin_download(const sp_channel &channel,const string &sjson);
     void task_files_finish_download(const sp_channel &channel,const string &sjson);
 
-//    void task_files_cancel_download(const sp_channel &channel,const string &sjson);
 };
 
 

@@ -2,7 +2,7 @@
 
 #include "../util/Tvlog.h"
 
-#define ADD_TASK(str,func) _map_task.emplace(str,std::bind(&server_task::func,this,_1,_2))
+#define ADD_TASK(func) _map_task.emplace(func,std::bind(&server_task::task_##func,this,_1,_2))
 
 #define ERR_BACK(err)                               \
 {                                                   \
@@ -24,10 +24,11 @@ server_task::server_task()
     fn_message = bind(&server_task::message,this,_1,_2);
     fn_close = bind(&server_task::close,this,_1);
 
-    ADD_TASK(login,task_login);
-    ADD_TASK(swap_msg,task_swap);
-    ADD_TASK(friends_list,task_friends_list);
-    ADD_TASK(friends_status,task_friends_status);
+    ADD_TASK(swap_msg);
+    ADD_TASK(ac_login);
+    ADD_TASK(ac_register);
+    ADD_TASK(friends_list);
+    ADD_TASK(friends_status);
 
 }
 
@@ -43,7 +44,7 @@ void server_task::transmit_msg(const sp_channel &channel,const string &sjson)
     string type;
     if(check_json(sjson,stream,type))
     {
-        if(stream == _cc_) { task_swap(channel,sjson); }
+        if(stream == _cc_) { task_swap_msg(channel,sjson); }
         else if(stream == _cs_)
         {
             //执行绑定函数
@@ -113,12 +114,12 @@ sp_channel server_task::find_connect_th(int64 account)
     return nullptr;
 }
 
-void server_task::task_login(const sp_channel &channel, const string &sjson)
+void server_task::task_ac_login(const sp_channel &channel, const string &sjson)
 {
     //解析json
     int64 account;
     string passwd;
-    if(get_login(sjson,account,passwd))
+    if(get_ac_login(sjson,account,passwd))
     {
         //账号查库
         string passwd_db;
@@ -132,7 +133,7 @@ void server_task::task_login(const sp_channel &channel, const string &sjson)
                 add_connect_th(account, channel);
 
                 //反馈信息
-                string s = set_login_back(true);
+                string s = set_ac_login_back(true);
                 channel->send(s);
                 vlogd("task_login ok" $(account));
             }
@@ -143,7 +144,7 @@ void server_task::task_login(const sp_channel &channel, const string &sjson)
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
 
-void server_task::task_swap(const sp_channel &channel, const string &sjson)
+void server_task::task_swap_msg(const sp_channel &channel, const string &sjson)
 {
     //解析json，获取目标账号
     int64 target;
@@ -188,19 +189,13 @@ void server_task::task_friends_status(const sp_channel &channel, const string &s
     string svec_ac_fs;
     if(get_friends_status(sjson,svec_ac_fs))
     {
-        vector<string> vec_ac = get_json_vec(svec_ac_fs);
-        vector<string> vec_ac_info;
-        vector<int64> vec_aci;
-
         //转类型
-        try {
-            for(const auto &a:vec_ac)
-            {
-                vec_aci.push_back(std::stoll(a));
-            }
-        } catch(...) {}
+        vector<string> vec_ac = get_json_vec(svec_ac_fs);
+        vector<int64> vec_aci;
+        bool ok = vec_stoi(vec_ac,vec_aci);
 
         //组合好友信息
+        vector<string> vec_ac_info;
         for(auto account:vec_aci)
         {
             //查信息库
@@ -217,10 +212,48 @@ void server_task::task_friends_status(const sp_channel &channel, const string &s
 
         //反馈信息
         string svec = set_json_vec(vec_ac_info); //生成svec的json格式字符串
-        string s = set_friends_status_back(svec,true);
+        string s = set_friends_status_back(svec,ok);
         channel->send(s);
     }
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+}
+
+void server_task::task_ac_register(const sp_channel &channel, const string &sjson)
+{
+    //解析json
+    int64 phone;
+    int64 age;
+    int64 sex;
+    string nickname;
+    string location;
+    string passwd;
+    if(get_ac_register(sjson,phone,age,sex,nickname,location,passwd))
+    {
+        //生成账号并加入账号
+        bool ok = false;
+        int64 account  = insert_account(passwd);
+        if(account != 0)
+        {
+            //附加信息
+            bool ok_info = _db_info->insert_info({account,phone,age,sex,nickname,location,"icon_default.png"});
+            if(ok_info) ok = true;
+        }
+        else vlogw("err: task_ac_register insert account failed");
+
+        //反馈信息
+        string s = set_ac_register_back(account,passwd,ok);
+        channel->send(s);
+    }
+    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+}
+
+int64 server_task::insert_account(string passwd,int count)
+{
+    int64 account = make_tools::rand_num();
+    bool ok = _db_account->insert_account(account,passwd);
+    if(ok) return account;
+    else if(count <= 0) return 0;
+    else return insert_account(passwd,count - 1);
 }
 
 

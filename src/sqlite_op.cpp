@@ -249,7 +249,6 @@ bool sqlite_friends::delete_friends(int64 account, int64 friends)
 
 bool sqlite_friends::select_friends(int64 account, vector<string> &data)
 {
-    std::tuple<string,vector<string>*> tup = std::make_tuple(_data.friends,&data);
     auto fn_cb = [](void *data, int argc, char **argv, char **name){
         auto *ptup = (std::tuple<string,vector<string>*>*)data;
         string fname = std::get<0>(*ptup);
@@ -261,9 +260,28 @@ bool sqlite_friends::select_friends(int64 account, vector<string> &data)
         return 0;
     };
 
-    string sql("SELECT * FROM {0} WHERE {1} = {2};");
-    sql = sformat(sql)(_table,_data.account,account);
-    return exec_db(sql,fn_cb,&tup);
+    //账号列
+    bool ok_account = false;
+    {
+        string fid = _data.account;
+        string friends = _data.friends;
+        std::tuple<string,vector<string>*> tup = std::make_tuple(friends,&data);
+        string sql("SELECT * FROM {0} WHERE {1} = {2};");
+        sql = sformat(sql)(_table,fid,account);
+        ok_account = exec_db(sql,fn_cb,&tup);
+    }
+
+    //好友列
+    bool ok_friends = false;
+    {
+        string fid = _data.friends;
+        string friends = _data.account;
+        std::tuple<string,vector<string>*> tup = std::make_tuple(friends,&data);
+        string sql("SELECT * FROM {0} WHERE {1} = {2};");
+        sql = sformat(sql)(_table,fid,account);
+        ok_friends = exec_db(sql,fn_cb,&tup);
+    }
+    return (ok_account && ok_friends);
 }
 
 bool sqlite_info::create_table()

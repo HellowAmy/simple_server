@@ -10,6 +10,50 @@
 
 using namespace std;
 
+//主要程序
+void test_0()
+{
+    vlogd("== server ==");
+
+    int ret = fork();
+    if(ret == 0)
+    {
+        vlogd("== server task ==");
+
+        sqlite_account  db_account;
+        sqlite_friends  db_friends;
+        sqlite_info     db_info;
+        sqlite_cache    db_cache;
+
+        if(db_account.open_info()
+           && db_friends.open_info()
+           && db_info.open_info()
+           && db_cache.open_cache())
+        {
+            //任务交换
+            server_task task;
+            task.init_data(&db_account, &db_friends, &db_info, &db_cache);
+
+            inter_server sw_task;
+            sw_task.func_bind(task.fn_open, task.fn_message, task.fn_close);
+            sw_task.open(CS_PORT_TASKS);
+        }
+        else vlogw("open data failed");
+    }
+    else if(ret > 0)
+    {
+        vlogd("== server files ==");
+
+        //文件传输
+        server_files files;
+        inter_server sw_files;
+        sw_files.func_bind(files.fn_open, files.fn_message, files.fn_close);
+        sw_files.open(CS_PORT_FILES);
+    }
+    else vlogw("fork failed");
+
+    vloge("== server end ==");
+}
 
 //网络连接
 void test_1()
@@ -180,17 +224,7 @@ void test_3()
 //测试输入
 void test_4()
 {
-    using namespace protocol;
 
-    string sjson = set_login(123456789,"abc");
-    vlogi($(sjson));
-
-    int64 v1;
-    string v2;
-    get_login(sjson,v1,v2);
-    vlogi($(v1) $(v2));
-    vlogi($(login));
-    vlogi($(login_back));
 }
 
 //网络转发
@@ -590,8 +624,9 @@ int main()
     Tvlogs::get()->set_level(vlevel4::e_info);
     vlogi("== begin ==");
 
-    int ret = 9;
-    if(ret == 1) test_1();          //网络连接
+    int ret = 0;
+    if(ret == 0)      test_0();     //主要程序
+    else if(ret == 1) test_1();     //网络连接
     else if(ret == 2) test_2();     //账号密码
     else if(ret == 3) test_3();     //随机账号
     else if(ret == 4) test_4();     //测试输入

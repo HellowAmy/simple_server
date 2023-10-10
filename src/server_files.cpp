@@ -5,11 +5,6 @@
 
 #define ADD_TASK(str) _map_task.emplace(str,std::bind(&server_files::task_##str,this,_1,_2))
 
-//#define ERR_BACK(err)                                               \
-//{                                                                   \
-//    channel->send(set_files_json(set_error_info(err,err##_S)));     \
-//    vlogw($(err##_S));                                              \
-//}
 
 #define ERR_BACK_S(err,sjson)                                       \
 {                                                                   \
@@ -19,7 +14,6 @@
 
 server_files::server_files()
 {
-//    _path_icon = "../data/head_icon/";
     _path_temp = "../temp_file/";
 
     fn_open = bind(&server_files::open,this,_1,_2);
@@ -39,13 +33,6 @@ void server_files::open(const sp_channel &channel, const sp_http &http)
 {
     bool ok = _fs_swap.add_id_channel(channel->id());
     vlogif(ok,$(ok));
-
-//    channel->setContextPtr(std::make_shared<fs_swap_id>(std::set<int64>(),std::set<int64>()));
-
-    channel->onwrite = [=](hv::Buffer* buf){
-        if(string((char*)buf->data()) == WS_SERVER_PING_FRAME) vlogd("onwrite: WS_SERVER_PING_FRAME 111");
-        else if(string((char*)buf->data()) == WS_SERVER_PONG_FRAME) vlogd("onwrite: WS_SERVER_PING_FRAME 222");
-    };
 
     vlogi("open:" $(http->path));
     if(check_sjson_head(http->path) == false)
@@ -123,10 +110,10 @@ void server_files::transmit_msg(const sp_channel &channel, const string &msg)
             string type;
             if(check_json(sjson,stream,type))
             {
+                vlogi("transmit_msg:" << $(type) $(stream));
                 if(stream == _cs_)
                 {
                     //执行绑定函数
-//                    std::unique_lock<mutex> lock(_mut_sjson);
                     auto it = _map_task.find(type);
                     if(it != _map_task.end()) it->second(channel,sjson);
                     else vlogw("not find task func" $(stream) $(type));
@@ -215,8 +202,8 @@ void server_files::task_files_finish_upload(const sp_channel &channel, const str
             auto it = _fs_swap.find_fs_send(id);
             if(it != nullptr) { files_info::remove_file(it->filename); }
             is_recv_success = false;
+            vlogw("task_files_finish_upload not success:" $(is_recv_success));
         }
-        vlogif(is_recv_success,"upload finish: " << $(is_recv_success) $(count) $(length) $(finish) $(id));
 
         //反馈数据
         string s = set_files_finish_upload_back(id,is_recv_success);
@@ -246,8 +233,7 @@ void server_files::task_files_create_download(const sp_channel &channel, const s
             length_max = files_info::get_file_size(abs_path);
             ok = _fs_swap.open_file_send_channel(channel->id(),id,abs_path,fn_send);
         }
-
-        vlogif(ok,$(abs_path) $(save_path) $(id) $(length_max));
+        else vlogw("task_files_create_download not exists" $(abs_path));
 
         //反馈数据
         string s = set_files_create_download_back(id,length_max,abs_path,save_path,ok);
@@ -285,8 +271,6 @@ void server_files::task_files_finish_download(const sp_channel &channel, const s
     {
         //完成文件接收，关闭文件流
         _fs_swap.close_file_send_channel(channel->id(),id);
-
-        vlogif(ok,$(ok) $(id) $(id));
     }
     else vlogw("get_files_finish_download");
 }

@@ -2,8 +2,10 @@
 #define SERVER_TASK_H
 
 #include "../../simple_chat/web_protocol.h"
+#include "make_tools.h"
 #include "inter_server.h"
 #include "sqlite_op.h"
+
 
 #include <functional>
 #include <string>
@@ -40,21 +42,28 @@ private:
     sqlite_info     *_db_info;
     sqlite_cache    *_db_cache;
 
+
+    //插入随即账号到数据库
+    int64 insert_account(string passwd,int count = 100);
+
+    //检查连接
+    bool check_sjson_head(string flg);
+
     //== _map_connect operator ==
     void add_connect_th(int64 account, const sp_channel &channel);
     void move_connect_th(int64 account);
     sp_channel find_connect_th(int64 account);
     //== _map_connect operator ==
 
-    void transmit_msg(const sp_channel &channel,const string &msg);
-    bool check_sjson_head(string flg);
 
     void open(const sp_channel &channel, const sp_http& http);
     void message(const sp_channel &channel, const string& msg);
     void close(const sp_channel &channel);
+    void transmit_msg(const sp_channel &channel,const string &msg);
 
-    void task_login(const sp_channel &channel,const string &sjson);
-    void task_swap(const sp_channel &channel,const string &sjson);
+    void task_swap_msg(const sp_channel &channel,const string &sjson);
+    void task_ac_login(const sp_channel &channel,const string &sjson);
+    void task_ac_register(const sp_channel &channel,const string &sjson);
     void task_friends_list(const sp_channel &channel,const string &sjson);
     void task_friends_status(const sp_channel &channel,const string &sjson);
 
