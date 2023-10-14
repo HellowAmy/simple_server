@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <memory>
 #include <functional>
 
 #include "format.h"
@@ -13,6 +15,7 @@
 typedef const std::string& cstr;
 typedef long long int64;
 using std::string;
+using std::map;
 using std::vector;
 
 //
@@ -23,21 +26,21 @@ public:
     ~sqlite_base();
     bool open_db(cstr file);                                    //打开
     bool close_db();                                            //关闭
+    bool create_db(cstr table_sql);                             //创建
     bool drop_db(cstr table);                                   //删除表
-    bool delete_db(cstr table);                                 //删除数据
+    bool delete_db(cstr table);                                 //删数据
     bool select_db(cstr table, vector<string> &data);           //查数据
 
-    int count_db(cstr table);   //统计条目
-    string get_error_exec();    //错误显示
-    string get_error();         //错误显示
+    int count_row_db(cstr table);   //统计条目
+    string get_error_exec();        //错误显示
+    string get_error();             //错误显示
 
     //删除单条
     template <class Tid>
     bool delete_db(cstr table, cstr field_id, Tid id)
     {
         string sql(R"( DELETE FROM {0} WHERE {1} = {2}; )");
-        sql = sformat(sql)(table,
-                            field_id,
+        sql = sformat(sql)(table,field_id,
                             (is_string(id) ? "'{0}'" : "{0}"));
         sql = sformat(sql)(id);
         return exec_db(sql);
@@ -65,6 +68,52 @@ public:
         sql = sformat(sql)(table,"{0}");
         return insert_mpl(sql,args...);
     }
+
+    //! 返回数值命令:
+    //!       string sql(R"(SELECT COUNT(*) FROM {0};)");
+    //!       sql = sformat(sql)(table);
+    //!       return step_column_db(sql,sqlite3_column_int);
+    template<class Tfunc>
+    auto step_column_db(cstr sql,Tfunc&& func,int index = 0)
+        ->typename std::result_of<Tfunc(sqlite3_stmt*,int)>::type
+    {
+        //准备命令
+        typename std::result_of<Tfunc(sqlite3_stmt*,int)>::type value;
+        sqlite3_stmt *stmt;
+        if(sqlite3_prepare_v2(_db,sql.c_str(),-1,&stmt,nullptr) == SQLITE_OK)
+        {
+            //获取结果
+            if(sqlite3_step(stmt) == SQLITE_ROW)
+            { value = func(stmt,index); }
+        }
+        sqlite3_finalize(stmt); //释放预处理语句
+        return value;
+    }
+
+    //按行选择
+    template<class Tid>
+    bool select_line_db(cstr table,vector<map<string,string>> &_vec_line,
+                        cstr field_id, Tid id,
+                        string sql = "")
+    {
+        auto fn_cb = [](void *data, int argc, char **argv, char **name){
+            auto vec = (vector<map<string,string>>*)data;
+            map<string,string> map;
+            for (int i=0; i<argc;i++)
+            { map[name[i]] = argv[i]; }
+            vec->push_back(map);
+            return 0;
+        };
+
+        if(sql == "")
+        {
+            sql = "SELECT * FROM {0} WHERE {1} = {2};";
+            sql = sformat(sql)(table,field_id,id);
+        }
+        return exec_db(sql,fn_cb,&_vec_line);
+    }
+
+
 
 protected:
     sqlite3 *_db = nullptr;
@@ -228,7 +277,7 @@ public:
     bool create_cache();
 
     bool insert_cache(int64 target,string sjson);
-    bool select_cache(int64 target,string &sjson);
+    bool select_cache(int64 target,vector<string> &data);
     bool delete_cache(int64 target);
 
     string get_file();

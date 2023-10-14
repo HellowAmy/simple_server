@@ -10,6 +10,11 @@ bool sqlite_base::close_db()
     return (sqlite3_close_v2(_db) == SQLITE_OK ? true : false);
 }
 
+bool sqlite_base::create_db(cstr table_sql)
+{
+    return exec_db(table_sql);
+}
+
 bool sqlite_base::delete_db(cstr table)
 {
     string sql("DELETE FROM {0};");
@@ -52,37 +57,12 @@ string sqlite_base::get_error()
     return (sqlite3_errmsg(_db) == nullptr ? "" : sqlite3_errmsg(_db));
 }
 
-int sqlite_base::count_db(cstr table)
+int sqlite_base::count_row_db(cstr table)
 {
-    int value = -1;
-    sqlite3_stmt *stmt;
     string sql(R"(SELECT COUNT(*) FROM {0};)");
     sql = sformat(sql)(table);
-
-    if(sqlite3_prepare_v2(_db,sql.c_str(),-1,&stmt,nullptr) == SQLITE_OK)
-    {
-        if(sqlite3_step(stmt) == SQLITE_ROW)
-        {
-            value = sqlite3_column_int(stmt,0);  //获取结果
-        }
-    }
-    sqlite3_finalize(stmt); //释放预处理语句
-    return value;
+    return step_column_db(sql,sqlite3_column_int);
 }
-
-//bool sqlite_base::update_db(cstr table, cstr field_id, cstr id, cstr field_update, cstr update)
-//{
-//    string sql(R"( UPDATE {0} SET {1} = {2} WHERE {3} = {4}; )");
-//    sql = sformat(sql)(table,field_update,update,field_id,id);
-//    return exec_db(sql);
-//}
-
-//bool sqlite_base::delete_db(cstr table, cstr field_id, cstr id)
-//{
-//    string sql(R"( DELETE FROM {0} WHERE {1} = {2}; )");
-//    sql = sformat(sql)(table,field_id,id);
-//    return exec_db(sql);
-//}
 
 bool sqlite_base::exec_db(cstr sql,int (*cb)(void*,int,char**,char**),void *data)
 {
@@ -93,7 +73,6 @@ sqlite_base::~sqlite_base()
 {
     close_db();
 }
-
 
 
 bool sqlite_ac_abs::open_info()
@@ -410,7 +389,7 @@ bool sqlite_cache::create_cache()
     //!
     string sql = R"(
         CREATE TABLE {0} (
-            {1} INTEGER PRIMARY KEY ,
+            {1} INTEGER ,
             {2} TEXT
         );
         )";
@@ -423,20 +402,23 @@ bool sqlite_cache::insert_cache(int64 target, string sjson)
     return insert_db(_table,target,sjson);
 }
 
-bool sqlite_cache::select_cache(int64 target, string &sjson)
+bool sqlite_cache::select_cache(int64 target, vector<string> &data)
 {
-    sjson = _data.sjson;
     auto fn_cb = [](void *data, int argc, char **argv, char **name){
-        auto *str = (string*)data;
+        auto *ptup = (std::tuple<string,vector<string>*>*)data;
+        string fname = std::get<0>(*ptup);
+        vector<string> *vec = std::get<1>(*ptup);
         for (int i=0; i<argc;i++)
         {
-            if(string(name[i]) == *str) *str = argv[i];
+            if(name[i] == fname) vec->push_back(argv[i]);
         }
         return 0;
     };
+
+    std::tuple<string,vector<string>*> tup = std::make_tuple(_data.target,&data);
     string sql("SELECT * FROM {0} WHERE {1} = {2};");
     sql = sformat(sql)(_table,_data.target,target);
-    return exec_db(sql,fn_cb,&sjson);
+    return exec_db(sql,fn_cb,&tup);
 }
 
 bool sqlite_cache::delete_cache(int64 target)

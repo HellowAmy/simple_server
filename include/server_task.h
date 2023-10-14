@@ -43,7 +43,7 @@ private:
     sqlite_cache    *_db_cache;
 
 
-    //插入随即账号到数据库
+    //插入随机账号到数据库
     int64 insert_account(string passwd,int count = 100);
 
     //检查连接
@@ -62,8 +62,10 @@ private:
     void transmit_msg(const sp_channel &channel,const string &msg);
 
     void task_swap_msg(const sp_channel &channel,const string &sjson);
+    void task_swap_cache(const sp_channel &channel,const string &sjson);
     void task_ac_login(const sp_channel &channel,const string &sjson);
     void task_ac_register(const sp_channel &channel,const string &sjson);
+    void task_ac_info(const sp_channel &channel,const string &sjson);
     void task_friends_list(const sp_channel &channel,const string &sjson);
     void task_friends_status(const sp_channel &channel,const string &sjson);
 

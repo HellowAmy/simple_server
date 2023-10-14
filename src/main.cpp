@@ -120,7 +120,7 @@ void test_2()
     }
 
     {
-        int value = sql.count_db(sql.get_table());
+        int value = sql.count_row_db(sql.get_table());
         vlogd($(value));
     }
     {
@@ -143,7 +143,7 @@ void test_2()
     }
 
     {
-        int value = sql.count_db(sql.get_table());
+        int value = sql.count_row_db(sql.get_table());
         vlogd($(value));
     }
     {
@@ -208,7 +208,7 @@ void test_3()
     }
 
     {
-        int value = sql.count_db(sql.get_table());
+        int value = sql.count_row_db(sql.get_table());
         vloge($(value));
     }
 //    {
@@ -274,16 +274,26 @@ void test_6()
         }
     }
     {
-        vector<string> data;
-        bool ok = sql.select_db(sql.get_table(),data);
-        (ok == true ? vlogd($(ok)) : vloge($(ok)));
-        for(auto a:data)
+        for(int i=50;i<180;i++)
         {
-            vlogd($(a));
+            bool ok = sql.insert_cache(i,"123456789");
+            if(ok == false) vloge($(i));
         }
     }
     {
-        int num = sql.count_db(sql.get_table());
+        vector<string> data;
+        bool ok = sql.select_cache(70,data);
+        vlogd($("ok:")$(ok));
+        vlogc(data,10);
+    }
+    {
+        vector<string> data;
+        bool ok = sql.select_db(sql.get_table(),data);
+        (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        vlogc(data,10);
+    }
+    {
+        int num = sql.count_row_db(sql.get_table());
         vlogd($(num));
     }
     {
@@ -291,13 +301,21 @@ void test_6()
         (ok == true ? vlogd($(ok)) : vloge($(ok)));
     }
     {
-        int num = sql.count_db(sql.get_table());
+        int num = sql.count_row_db(sql.get_table());
         vlogd($(num));
     }
     {
-        bool ok = sql.drop_db(sql.get_table());
+        bool ok = sql.delete_db(sql.get_table());
         (ok == true ? vlogd($(ok)) : vloge($(ok)));
     }
+    {
+        int num = sql.count_row_db(sql.get_table());
+        vlogd($(num));
+    }
+//    {
+//        bool ok = sql.drop_db(sql.get_table());
+//        (ok == true ? vlogd($(ok)) : vloge($(ok)));
+//    }
     {
         bool ok = sql.close_db();
         (ok == true ? vlogd($(ok)) : vloge($(ok)));
@@ -619,6 +637,78 @@ void test_9()
 
 }
 
+
+
+//测数据库
+void test_10()
+{
+    sqlite_base sql;
+    string table = "tab";
+    {
+        bool ok = sql.open_db("test_base.db");
+        vlogif(ok,$(ok));
+    }
+
+    { //PRIMARY KEY
+        string str_sql = R"(
+        CREATE TABLE tab (
+            id INTEGER,
+            a INTEGER,
+            b INTEGER,
+            c TEXT
+        );
+        )";
+
+        bool ok = sql.create_db(str_sql);
+        vlogif(ok,$(ok));
+    }
+
+    for(int i=0;i<18;i++)
+    {
+        bool ok = sql.insert_db(table,i+1,i+11,i+22,"ok:" + std::to_string(i));
+        vlogif(ok,$(ok));
+    }
+
+    vlogi("======== show ====\n");
+
+    {
+        int value = sql.count_row_db(table);
+        vlogi("=================: "<<$(value));
+    }
+    {
+        vector<string> vec;
+        int value = sql.select_db(table,vec);
+        vlogc(vec,1);
+    }
+    {
+        vector<map<string,string>> vec;
+        bool ok = sql.select_line_db(table,vec,"id",10);
+        vlogif(ok,$(ok) $(vec.size()));
+
+        for(auto a:vec)
+        {
+            for(auto b:a)
+            {
+                vlogi($(b.first) $(b.second));
+            }
+        }
+    }
+
+    vlogi("======== end ====\n");
+    {
+        bool ok = sql.delete_db(table);
+        vlogif(ok,$(ok));
+    }
+    {
+        bool ok = sql.drop_db(table);
+        vlogif(ok,$(ok));
+    }
+    {
+        bool ok = sql.close_db();
+        vlogif(ok,$(ok));
+    }
+}
+
 int main()
 {
     Tvlogs::get()->set_level(vlevel4::e_info);
@@ -635,6 +725,8 @@ int main()
     else if(ret == 7) test_7();     //外键约束
     else if(ret == 8) test_8();     //账号下发
     else if(ret == 9) test_9();     //文件转换
+
+    else if(ret == 10) test_10();   //数据接口
 
     vloge("== end ==");
 

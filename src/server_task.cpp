@@ -25,8 +25,10 @@ server_task::server_task()
     fn_close = bind(&server_task::close,this,_1);
 
     ADD_TASK(swap_msg);
+    ADD_TASK(swap_cache);
     ADD_TASK(ac_login);
     ADD_TASK(ac_register);
+    ADD_TASK(ac_info);
     ADD_TASK(friends_list);
     ADD_TASK(friends_status);
 
@@ -106,6 +108,15 @@ void server_task::move_connect_th(int64 account)
     _map_connect.erase(account);
 }
 
+int64 server_task::insert_account(string passwd,int count)
+{
+    int64 account = make_tools::rand_num();
+    bool ok = _db_account->insert_account(account,passwd);
+    if(ok) return account;
+    else if(count <= 0) return 0;
+    else return insert_account(passwd,count - 1);
+}
+
 sp_channel server_task::find_connect_th(int64 account)
 {
     std::unique_lock<mutex> lock(_mut_connect);
@@ -157,7 +168,7 @@ void server_task::task_swap_msg(const sp_channel &channel, const string &sjson)
         else
         {
             //失败，加入失败记录，离线发送
-            if(_db_cache->insert_cache(target,sjson))
+            if(_db_cache->insert_cache(target,sjson) == false)
             { ERR_BACK(CS_ERR_SWAP_SJSON); }
         }
     }
@@ -247,14 +258,44 @@ void server_task::task_ac_register(const sp_channel &channel, const string &sjso
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
 
-int64 server_task::insert_account(string passwd,int count)
+void server_task::task_swap_cache(const sp_channel &channel, const string &sjson)
 {
-    int64 account = make_tools::rand_num();
-    bool ok = _db_account->insert_account(account,passwd);
-    if(ok) return account;
-    else if(count <= 0) return 0;
-    else return insert_account(passwd,count - 1);
+    //解析json
+    int64 target;
+    if(get_swap_cache(sjson,target))
+    {
+        //获取暂存信息
+        vector<string> data;
+        bool ok = _db_cache->select_cache(target,data);
+
+        //移除暂存信息
+        if(ok) _db_cache->delete_cache(target);
+
+        //反馈信息
+        string svec = set_json_vec(data);
+        string s = set_swap_cache_back(svec,ok);
+        channel->send(s);
+    }
+    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
+
+void server_task::task_ac_info(const sp_channel &channel, const string &sjson)
+{
+    //解析json
+    int64 account;
+    if(get_ac_info(sjson,account))
+    {
+        //查信息库
+        sqlite_info::data fdata;
+        bool ok = _db_info->select_info(account,fdata);
+
+        //反馈信息
+        string s = set_ac_info_back(fdata.nickname,fdata.icon,ok);
+        channel->send(s);
+    }
+    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+}
+
 
 
 
