@@ -16,6 +16,8 @@
     vlogw("err sjson: "$(sjson));                   \
 }
 
+#define UPDATE_AC_INFO(ac,field,ok) \
+    ok = _db_info->update_db(_db_info->get_table(),_db_info->get_data().ac,ac,_db_info->get_data().field,field)
 
 
 server_task::server_task()
@@ -29,8 +31,11 @@ server_task::server_task()
     ADD_TASK(ac_login);
     ADD_TASK(ac_register);
     ADD_TASK(ac_info);
+    ADD_TASK(ac_info_all);
+    ADD_TASK(ac_update_info);
     ADD_TASK(friends_list);
     ADD_TASK(friends_status);
+
 
 }
 
@@ -144,7 +149,7 @@ void server_task::task_ac_login(const sp_channel &channel, const string &sjson)
                 add_connect_th(account, channel);
 
                 //反馈信息
-                string s = set_ac_login_back(true);
+                string s = set_ac_login_back(account,true);
                 channel->send(s);
                 vlogd("task_login ok" $(account));
             }
@@ -187,7 +192,7 @@ void server_task::task_friends_list(const sp_channel &channel, const string &sjs
         {
             //反馈信息
             string scev = set_json_vec(vec_friends);
-            channel->send(set_friends_list_back(scev,true));
+            channel->send(set_friends_list_back(account,scev,true));
         }
         else ERR_BACK(CS_ERR_SELECT_DATA);
     }
@@ -197,8 +202,9 @@ void server_task::task_friends_list(const sp_channel &channel, const string &sjs
 void server_task::task_friends_status(const sp_channel &channel, const string &sjson)
 {
     //解析json
+    int64 account;
     string svec_ac_fs;
-    if(get_friends_status(sjson,svec_ac_fs))
+    if(get_friends_status(sjson,account,svec_ac_fs))
     {
         //转类型
         vector<string> vec_ac = get_json_vec(svec_ac_fs);
@@ -207,23 +213,23 @@ void server_task::task_friends_status(const sp_channel &channel, const string &s
 
         //组合好友信息
         vector<string> vec_ac_info;
-        for(auto account:vec_aci)
+        for(auto ac:vec_aci)
         {
             //查信息库
             sqlite_info::data fdata;
-            if(_db_info->select_info(account,fdata))
+            if(_db_info->select_info(ac,fdata))
             {
                 //查在线列表
                 bool online = true;
-                if(find_connect_th(account) == nullptr) online = false;
-                vec_ac_info.push_back(set_ac_info_json(account,fdata.nickname,fdata.icon,online));
+                if(find_connect_th(ac) == nullptr) online = false;
+                vec_ac_info.push_back(set_ac_info_json(ac,fdata.nickname,fdata.icon,online));
             }
             else ERR_BACK(CS_ERR_SELECT_DATA);
         }
 
         //反馈信息
         string svec = set_json_vec(vec_ac_info); //生成svec的json格式字符串
-        string s = set_friends_status_back(svec,ok);
+        string s = set_friends_status_back(account,svec,ok);
         channel->send(s);
     }
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
@@ -290,8 +296,72 @@ void server_task::task_ac_info(const sp_channel &channel, const string &sjson)
         bool ok = _db_info->select_info(account,fdata);
 
         //反馈信息
-        string s = set_ac_info_back(fdata.nickname,fdata.icon,ok);
+        string s = set_ac_info_back(account,fdata.nickname,fdata.icon,ok);
         channel->send(s);
+    }
+    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+}
+
+void server_task::task_ac_update_info(const sp_channel &channel, const string &sjson)
+{
+    int64 account;
+    int64 phone;
+    int64 age;
+    int64 sex;
+    string nickname;
+    string location;
+    string icon;
+    if(get_ac_update_info(sjson,account,phone,age,sex,nickname,location,icon))
+    {
+        //修改信息
+        bool ok1 = true;
+        bool ok2 = true;
+        bool ok3 = true;
+        bool ok4 = true;
+        bool ok5 = true;
+        bool ok6 = true;
+        if(phone != -1)     { UPDATE_AC_INFO(account,phone,ok1); }
+        if(age != -1)       { UPDATE_AC_INFO(account,age,ok2); }
+        if(sex != -1)       { UPDATE_AC_INFO(account,sex,ok3); }
+        if(nickname != "")  { UPDATE_AC_INFO(account,nickname,ok4); }
+        if(location != "")  { UPDATE_AC_INFO(account,location,ok5); }
+        if(icon != "")      { UPDATE_AC_INFO(account,icon,ok6); }
+
+        //反馈信息
+        bool ok = (ok1 && ok2 && ok3 && ok4 && ok5 && ok6);
+        string s = set_ac_update_info_back(account,ok);
+        channel->send(s);
+
+        vlogi("update info:"<< $(account) $(ok) $(phone) $(age) $(sex) $(nickname) $(location) $(icon) );
+    }
+    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+}
+
+void server_task::task_ac_info_all(const sp_channel &channel, const string &sjson)
+{
+    //解析json
+    int64 account;
+    if(get_ac_info_all(sjson,account))
+    {
+        //查信息库
+        sqlite_info::data fdata;
+        bool ok = _db_info->select_info(account,fdata);
+        if(ok)
+        {
+            try {
+                int64 phone = std::stoll(fdata.phone);
+                int64 age = std::stoll(fdata.age);
+                int64 sex = std::stoll(fdata.sex);
+                string nickname = fdata.nickname;
+                string location = fdata.location;
+                string icon = fdata.icon;
+
+                //反馈信息
+                string s = set_ac_info_all_back(account,phone,age,sex,nickname,location,icon);
+                channel->send(s);
+            }
+            catch(...) {}
+        }
     }
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }

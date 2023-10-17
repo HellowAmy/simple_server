@@ -415,7 +415,7 @@ bool sqlite_cache::select_cache(int64 target, vector<string> &data)
         return 0;
     };
 
-    std::tuple<string,vector<string>*> tup = std::make_tuple(_data.target,&data);
+    std::tuple<string,vector<string>*> tup = std::make_tuple(_data.sjson,&data);
     string sql("SELECT * FROM {0} WHERE {1} = {2};");
     sql = sformat(sql)(_table,_data.target,target);
     return exec_db(sql,fn_cb,&tup);

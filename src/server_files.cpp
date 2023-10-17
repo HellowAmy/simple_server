@@ -165,6 +165,8 @@ void server_files::task_files_create_upload(const sp_channel &channel, const str
         //反馈数据
         string s = set_files_create_upload_back(id,abs_file,ok);
         send_msg(channel,s);
+
+        vlogd("create_upload:" $(id));
     }
     else vlogw("err: task_files_create_upload" << $(time) $(length_file) $(abs_file));
 }
@@ -208,6 +210,8 @@ void server_files::task_files_finish_upload(const sp_channel &channel, const str
         //反馈数据
         string s = set_files_finish_upload_back(id,is_recv_success);
         send_msg(channel,s);
+
+        vlogd("finish_upload:" $(id) $(is_recv_success));
     }
     else vlogw("err: task_files_finish_upload");
 }
@@ -238,6 +242,8 @@ void server_files::task_files_create_download(const sp_channel &channel, const s
         //反馈数据
         string s = set_files_create_download_back(id,length_max,abs_path,save_path,ok);
         send_msg(channel,s);
+
+        vlogd("create_download:" $(id));
     }
     else vlogw("err: task_files_create_download");
 }
@@ -271,6 +277,8 @@ void server_files::task_files_finish_download(const sp_channel &channel, const s
     {
         //完成文件接收，关闭文件流
         _fs_swap.close_file_send_channel(channel->id(),id);
+
+        vlogd("finish_download:" $(id) $(ok));
     }
     else vlogw("get_files_finish_download");
 }
