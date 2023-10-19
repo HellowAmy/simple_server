@@ -373,36 +373,36 @@ void test_7()
         }
     }
 
-    {
-        int v = 100000000;
-        for(int i=v;i<v+5;i++)
-        {
-            for(int j=i;j<i+5;j++)
-            {
-                bool ok = sqlf.insert_friends(i,j);
-                (ok == true ? vlogd($(ok)) : vloge($(ok)));
-            }
-        }
-    }
-    {
-        vector<string> data;
-        bool ok = sqlf.select_db(sqlf.get_table(),data);
-        (ok == true ? vlogd($(ok)) : vloge($(ok)));
-        for(auto a:data)
-        {
-            vlogi(a);
-        }
-    }
+//    {
+//        int v = 100000000;
+//        for(int i=v;i<v+5;i++)
+//        {
+//            for(int j=i;j<i+5;j++)
+//            {
+//                bool ok = sqlf.insert_friends(i,j);
+//                (ok == true ? vlogd($(ok)) : vloge($(ok)));
+//            }
+//        }
+//    }
+//    {
+//        vector<string> data;
+//        bool ok = sqlf.select_db(sqlf.get_table(),data);
+//        (ok == true ? vlogd($(ok)) : vloge($(ok)));
+//        for(auto a:data)
+//        {
+//            vlogi(a);
+//        }
+//    }
 
-    {
-        vector<string> data;
-        bool ok = sqlf.select_friends(100000003,data);
-        (ok == true ? vlogd($(ok)) : vloge($(ok)));
-        for(auto a:data)
-        {
-            vlogi(a);
-        }
-    }
+//    {
+//        vector<string> data;
+//        bool ok = sqlf.select_friends(100000003,data);
+//        (ok == true ? vlogd($(ok)) : vloge($(ok)));
+//        for(auto a:data)
+//        {
+//            vlogi(a);
+//        }
+//    }
 
     {
         bool ok = sqlf.delete_friends(100000003,100000004);
@@ -572,16 +572,16 @@ void test_8()
 
         vlogd("== insert_friends ==");
         {
-            for(int i=0;i<data.size();i++)
-            {
-                int64 ac = data[i];
-                for(int j=i;j<data.size();j++)
-                {
-                    int64 fs = data[j];
-                    bool ok = sqlf.insert_friends(ac,fs);
-                    (ok == true ? vlogd($(ok)) : (ac == fs ? vlogd($(ok)) : vloge($(ok))));
-                }
-            }
+//            for(int i=0;i<data.size();i++)
+//            {
+//                int64 ac = data[i];
+//                for(int j=i;j<data.size();j++)
+//                {
+//                    int64 fs = data[j];
+//                    bool ok = sqlf.insert_friends(ac,fs);
+//                    (ok == true ? vlogd($(ok)) : (ac == fs ? vlogd($(ok)) : vloge($(ok))));
+//                }
+//            }
         }
 
         vlogd("== insert_info ==");
@@ -689,6 +689,7 @@ void test_10()
         {
             for(auto b:a)
             {
+                //key: b.first  | value: b.second
                 vlogi($(b.first) $(b.second));
             }
         }
@@ -705,6 +706,121 @@ void test_10()
     }
     {
         bool ok = sql.close_db();
+        vlogif(ok,$(ok));
+    }
+}
+
+void test_11()
+{
+    sqlite_friends sqlf;
+    {
+        bool ok = sqlf.open_info();
+        vlogif(ok,$(ok));
+    }
+    {
+        bool ok = sqlf.create_table();
+        vlogif(ok,$(ok));
+    }
+
+    int64 account = 535181553;
+    {
+        vector<int64> vec;
+        vec.push_back(303756815);
+        vec.push_back(340717797);
+        vec.push_back(411821267);
+        vec.push_back(412131535);
+        vec.push_back(422157964);
+        vec.push_back(434592263);
+        vec.push_back(449749116);
+        vec.push_back(500902190);
+        vec.push_back(518211187);
+        vec.push_back(523892629);
+//        vec.push_back(607037441);
+//        vec.push_back(616660262);
+//        vec.push_back(673944815);
+//        vec.push_back(714405069);
+//        vec.push_back(796304805);
+//        vec.push_back(798315362);
+//        vec.push_back(834477711);
+//        vec.push_back(877370201);
+//        vec.push_back(886423439);
+//        vec.push_back(987491857);
+
+        for(auto a:vec)
+        {
+            bool ok = sqlf.insert_ac_both_friend(account,a,"");
+            (ok == true ? vlogd($(ok)) : vloge($(ok)));
+        }
+    }
+
+//    {
+//        int v = 100000000;
+//        for(int i=v;i<v+5;i++)
+//        {
+//            for(int j=i+1;j<i+5;j++)
+//            {
+//                bool ok = sqlf.insert_ac_both_friend(i,j,"respo+"+std::to_string(i) +"+ww+"+ std::to_string(j));
+//                (ok == true ? vlogd($(ok)) : vloge($(ok)));
+//            }
+//        }
+//    }
+//    {
+//        int v = 100000000 +3;
+//        {
+//            vector<map<string,string>> vec_line;
+//            bool ok = sqlf.select_friends(v,vec_line);
+//            vlogif(ok,$(ok));
+//            for(auto a:vec_line)
+//            {
+//                for(auto b:a)
+//                {
+//                    //key: b.first  | value: b.second
+//                    vlogi($(b.first) $(b.second));
+//                }
+//                vlogi("\n");
+//            }
+//        }
+//        {
+//            string remarks;
+//            bool ok = sqlf.select_remarks(v,v+2,remarks);
+//            vlogif(ok,$(ok));
+//        }
+//    }
+
+    {
+        vector<string> data;
+        bool ok = sqlf.select_db(sqlf.get_table(),data);
+        vlogc(data,1);
+    }
+
+    {
+        string remarks;
+        bool ok = sqlf.select_remarks(account,412131535,remarks);
+        vlogw($(ok) $(remarks));
+    }
+    {
+        string remarks;
+        bool ok = sqlf.update_remarks(account,412131535,"不认识的人");
+        vlogw($(ok) $(remarks));
+    }
+    {
+        string remarks;
+        bool ok = sqlf.select_remarks(account,412131535,remarks);
+        vlogw($(ok) $(remarks));
+    }
+
+    {
+        string remarks;
+        bool ok = sqlf.select_remarks(account,798315362,remarks);
+        vlogw($(ok) $(remarks));
+    }
+
+//    {
+//        bool ok = sqlf.drop_db(sqlf.get_table());
+//        vlogif(ok,$(ok));
+//    }
+    {
+        bool ok = sqlf.close_db();
         vlogif(ok,$(ok));
     }
 }
@@ -727,6 +843,7 @@ int main()
     else if(ret == 9) test_9();     //文件转换
 
     else if(ret == 10) test_10();   //数据接口
+    else if(ret == 11) test_11();   //添加好友
 
     vloge("== end ==");
 

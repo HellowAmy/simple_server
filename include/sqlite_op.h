@@ -30,6 +30,9 @@ public:
     bool drop_db(cstr table);                                   //删除表
     bool delete_db(cstr table);                                 //删数据
     bool select_db(cstr table, vector<string> &data);           //查数据
+    bool commit_begin();
+    bool commit_end();
+    bool commit_back();
 
     int count_row_db(cstr table);   //统计条目
     string get_error_exec();        //错误显示
@@ -213,15 +216,21 @@ public:
     {
         string account;
         string friends;
+        string remarks;
     };
 
 public:
     sqlite_friends();
     bool create_table() override;
 
-    bool insert_friends(int64 account,int64 friends);
-    bool select_friends(int64 account,vector<string> &data);
+    bool update_remarks(int64 account,int64 friends,string remarks);
+    bool insert_friends(int64 account,int64 friends,string remarks);
+    bool select_friends(int64 account,vector<map<string,string>> &vec_line);
+    bool select_remarks(int64 account,int64 ac_friends,string &remarks);
     bool delete_friends(int64 account,int64 friends);
+
+    //同时插入双方账号到好友列表（失败则回滚）
+    bool insert_ac_both_friend(int64 account,int64 friends,string remarks);
 
     data get_data();
 

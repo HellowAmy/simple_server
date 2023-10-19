@@ -66,8 +66,10 @@ private:
     void task_ac_login(const sp_channel &channel,const string &sjson);
     void task_ac_register(const sp_channel &channel,const string &sjson);
     void task_ac_info(const sp_channel &channel,const string &sjson);
+    void task_ac_info_remarks(const sp_channel &channel,const string &sjson);
     void task_ac_info_all(const sp_channel &channel,const string &sjson);
     void task_ac_update_info(const sp_channel &channel,const string &sjson);
+    void task_ac_update_remarks(const sp_channel &channel,const string &sjson);
     void task_friends_list(const sp_channel &channel,const string &sjson);
     void task_friends_status(const sp_channel &channel,const string &sjson);
 

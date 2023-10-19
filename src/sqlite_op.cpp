@@ -74,6 +74,23 @@ sqlite_base::~sqlite_base()
     close_db();
 }
 
+bool sqlite_base::commit_begin()
+{
+    string sql("BEGIN;");
+    return exec_db(sql);
+}
+
+bool sqlite_base::commit_end()
+{
+    string sql("COMMIT;");
+    return exec_db(sql);
+}
+
+bool sqlite_base::commit_back()
+{
+    string sql("ROLLBACK;");
+    return exec_db(sql);
+}
 
 bool sqlite_ac_abs::open_info()
 {
@@ -187,6 +204,7 @@ sqlite_friends::sqlite_friends()
     _table = "ac_friends";
     _data.account = "account";
     _data.friends = "friends";
+    _data.remarks = "remarks";
 }
 
 bool sqlite_friends::create_table()
@@ -199,13 +217,15 @@ bool sqlite_friends::create_table()
         CREATE TABLE {0} (
             {1} INTEGER ,
             {2} INTEGER ,
+            {3} INTEGER ,
             CHECK ({1} != {2}),
-            FOREIGN KEY ({1}) REFERENCES {3} ({4}),
-            FOREIGN KEY ({2}) REFERENCES {3} ({4})
+            FOREIGN KEY ({1}) REFERENCES {4} ({5}),
+            FOREIGN KEY ({2}) REFERENCES {4} ({5}),
+            PRIMARY KEY ({1}, {2})
         );
         )";
     sqlite_account ac;
-    sql = sformat(sql)(_table,_data.account,_data.friends,ac.get_table(),ac.get_data().account);
+    sql = sformat(sql)(_table,_data.account,_data.friends,_data.remarks,ac.get_table(),ac.get_data().account);
     return exec_db(sql);
 }
 
@@ -214,9 +234,9 @@ sqlite_friends::data sqlite_friends::get_data()
     return _data;
 }
 
-bool sqlite_friends::insert_friends(int64 account, int64 friends)
+bool sqlite_friends::insert_friends(int64 account, int64 friends,string remarks)
 {
-    return insert_db(_table,account,friends);
+    return insert_db(_table,account,friends,remarks);
 }
 
 bool sqlite_friends::delete_friends(int64 account, int64 friends)
@@ -226,41 +246,67 @@ bool sqlite_friends::delete_friends(int64 account, int64 friends)
     return exec_db(sql);
 }
 
-bool sqlite_friends::select_friends(int64 account, vector<string> &data)
+bool sqlite_friends::select_friends(int64 account, vector<map<string,string>> &vec_line)
 {
-    auto fn_cb = [](void *data, int argc, char **argv, char **name){
-        auto *ptup = (std::tuple<string,vector<string>*>*)data;
-        string fname = std::get<0>(*ptup);
-        vector<string> *vec = std::get<1>(*ptup);
-        for (int i=0; i<argc;i++)
+    return select_line_db(_table,vec_line,_data.account,account);
+}
+
+bool sqlite_friends::select_remarks(int64 account, int64 ac_friends, string &remarks)
+{
+    vector<map<string,string>> vec_line;
+    bool ok = select_friends(account,vec_line);
+    if(ok)
+    {
+        for(auto &a:vec_line)
         {
-            if(name[i] == fname) vec->push_back(argv[i]);
+            //获取一行信息
+            data fdate;
+            for(auto &b:a)
+            {
+                if(b.first == _data.friends)
+                {
+                    fdate.friends = b.second;
+                }
+                else if(b.first == _data.remarks)
+                {
+                    fdate.remarks = b.second;
+                }
+            }
+
+            //对比好友账号
+            try {
+                int64 ac = std::stoll(fdate.friends);
+                if(ac == ac_friends)
+                {
+                    remarks = fdate.remarks;
+                    return true;
+                }
+            }
+            catch(...) { return false; }
         }
-        return 0;
-    };
-
-    //账号列
-    bool ok_account = false;
-    {
-        string fid = _data.account;
-        string friends = _data.friends;
-        std::tuple<string,vector<string>*> tup = std::make_tuple(friends,&data);
-        string sql("SELECT * FROM {0} WHERE {1} = {2};");
-        sql = sformat(sql)(_table,fid,account);
-        ok_account = exec_db(sql,fn_cb,&tup);
     }
+    return ok;
+}
 
-    //好友列
-    bool ok_friends = false;
-    {
-        string fid = _data.friends;
-        string friends = _data.account;
-        std::tuple<string,vector<string>*> tup = std::make_tuple(friends,&data);
-        string sql("SELECT * FROM {0} WHERE {1} = {2};");
-        sql = sformat(sql)(_table,fid,account);
-        ok_friends = exec_db(sql,fn_cb,&tup);
-    }
-    return (ok_account && ok_friends);
+bool sqlite_friends::insert_ac_both_friend(int64 account, int64 friends, string remarks)
+{
+    commit_begin();
+    bool ok1 = insert_friends(account,friends,remarks);
+    bool ok2 = insert_friends(friends,account,"");
+
+    bool ok_ret = (ok1 && ok2);
+    if(ok_ret) commit_end();
+    else commit_back();
+    return ok_ret;
+}
+
+bool sqlite_friends::update_remarks(int64 account, int64 friends, string remarks)
+{
+    string sql(R"( UPDATE {0} SET {1} = '{2}' WHERE {3} = {4} AND {5} = {6}; )");
+    sql = sformat(sql)(_table,_data.remarks,remarks,
+                       _data.account,account,
+                       _data.friends,friends);
+    return exec_db(sql);
 }
 
 bool sqlite_info::create_table()

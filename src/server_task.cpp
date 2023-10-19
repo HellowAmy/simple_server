@@ -31,10 +31,13 @@ server_task::server_task()
     ADD_TASK(ac_login);
     ADD_TASK(ac_register);
     ADD_TASK(ac_info);
+    ADD_TASK(ac_info_remarks);
     ADD_TASK(ac_info_all);
     ADD_TASK(ac_update_info);
+    ADD_TASK(ac_update_remarks);
     ADD_TASK(friends_list);
     ADD_TASK(friends_status);
+
 
 
 }
@@ -188,8 +191,18 @@ void server_task::task_friends_list(const sp_channel &channel, const string &sjs
     {
         //查好友库
         vector<string> vec_friends;
-        if(_db_friends->select_friends(account,vec_friends))
+        vector<map<string,string>> vec_line;
+        if(_db_friends->select_friends(account,vec_line))
         {
+            for(auto a:vec_line)
+            {
+                for(auto b:a)
+                {
+                    if(b.first == _db_friends->get_data().friends)
+                    { vec_friends.push_back(b.second); }
+                }
+            }
+
             //反馈信息
             string scev = set_json_vec(vec_friends);
             channel->send(set_friends_list_back(account,scev,true));
@@ -215,6 +228,11 @@ void server_task::task_friends_status(const sp_channel &channel, const string &s
         vector<string> vec_ac_info;
         for(auto ac:vec_aci)
         {
+            //查好友备注
+            string remarks;
+            if(_db_friends->select_remarks(account,ac,remarks) == false)
+            { vlogw("select_remarks failed"); }
+
             //查信息库
             sqlite_info::data fdata;
             if(_db_info->select_info(ac,fdata))
@@ -222,7 +240,7 @@ void server_task::task_friends_status(const sp_channel &channel, const string &s
                 //查在线列表
                 bool online = true;
                 if(find_connect_th(ac) == nullptr) online = false;
-                vec_ac_info.push_back(set_ac_info_json(ac,fdata.nickname,fdata.icon,online));
+                vec_ac_info.push_back(set_ac_info_json(ac,fdata.nickname,fdata.icon,remarks,online));
             }
             else ERR_BACK(CS_ERR_SELECT_DATA);
         }
@@ -337,6 +355,20 @@ void server_task::task_ac_update_info(const sp_channel &channel, const string &s
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
 
+void server_task::task_ac_update_remarks(const sp_channel &channel, const string &sjson)
+{
+    int64 account;
+    int64 friends;
+    string remarks;
+    if(get_ac_update_remarks(sjson,account,friends,remarks))
+    {
+        bool ok = _db_friends->update_remarks(account,friends,remarks);
+        string s = set_ac_update_remarks_back(account,friends,ok);
+        channel->send(s);
+    }
+    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+}
+
 void server_task::task_ac_info_all(const sp_channel &channel, const string &sjson)
 {
     //解析json
@@ -365,6 +397,27 @@ void server_task::task_ac_info_all(const sp_channel &channel, const string &sjso
     }
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
+
+void server_task::task_ac_info_remarks(const sp_channel &channel, const string &sjson)
+{
+    //解析json
+    int64 account;
+    int64 friends;
+    if(get_ac_info_remarks(sjson,account,friends))
+    {
+        string remarks;
+        if(_db_friends->select_remarks(account,friends,remarks))
+        {
+            //反馈信息
+            string s = set_ac_info_remarks_back(friends,remarks);
+            channel->send(s);
+        }
+        else vlogw("select_remarks failed");
+    }
+    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+}
+
+
 
 
 
