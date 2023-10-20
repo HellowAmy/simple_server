@@ -30,13 +30,13 @@ server_task::server_task()
     ADD_TASK(swap_cache);
     ADD_TASK(ac_login);
     ADD_TASK(ac_register);
-    ADD_TASK(ac_info);
-    ADD_TASK(ac_info_remarks);
+//    ADD_TASK(ac_info);
+//    ADD_TASK(ac_info_remarks);
     ADD_TASK(ac_info_all);
     ADD_TASK(ac_update_info);
     ADD_TASK(ac_update_remarks);
-    ADD_TASK(friends_list);
-    ADD_TASK(friends_status);
+//    ADD_TASK(friends_list);
+//    ADD_TASK(friends_status);
 
 
 
@@ -144,17 +144,70 @@ void server_task::task_ac_login(const sp_channel &channel, const string &sjson)
         string passwd_db;
         if(_db_account->select_account(account,passwd_db))
         {
-            //信息验证
-            if(passwd_db == passwd)
+            //密码验证
+            if(passwd_verify(passwd_db,passwd))
             {
                 //加入连接池
                 channel->setContextPtr(std::make_shared<int64>(account));
                 add_connect_th(account, channel);
 
-                //反馈信息
-                string s = set_ac_login_back(account,true);
-                channel->send(s);
-                vlogd("task_login ok" $(account));
+                //获取好友列表
+                vector<int64> vec_friends_ac;
+                {
+                    //查询账号好友
+                    vector<string> vec_friends;
+                    vector<map<string,string>> vec_line;
+                    if(_db_friends->select_friends(account,vec_line))
+                    {
+                        for(auto a:vec_line)
+                        {
+                            for(auto b:a)
+                            {
+                                if(b.first == _db_friends->get_data().friends)
+                                { vec_friends.push_back(b.second); }
+                            }
+                        }
+                    }
+                    else ERR_BACK(CS_ERR_SELECT_DATA);
+                    vec_stoi(vec_friends,vec_friends_ac);
+                }
+
+                //组合好友信息到容器
+                vector<string> vec_friends_info;
+                for(auto ac_fr : vec_friends_ac)
+                {
+                    //获取好友在线
+                    bool online = true;
+                    if(find_connect_th(ac_fr) == nullptr) online = false;
+
+                    //获取好友备注
+                    string remarks;
+                    if(_db_friends->select_remarks(account,ac_fr,remarks) == false)
+                    { vlogw("select_remarks failed"); }
+
+                    //获取好友信息
+                    sqlite_info::data fdata;
+                    if(_db_info->select_info(ac_fr,fdata) == false)
+                    { ERR_BACK(CS_ERR_SELECT_DATA); }
+
+                    //组合好友信息
+                    vec_friends_info.push_back(set_friends_info_json(ac_fr,fdata.nickname,fdata.icon,remarks,online));
+                }
+
+                //获取账号信息
+                sqlite_info::data fdata;
+                if(_db_info->select_info(account,fdata))
+                {
+                    //容器转json格式
+                    string svec_friends_info = set_json_vec(vec_friends_info);
+                    string ac_nickname = fdata.nickname;
+                    string ac_icon = fdata.icon;
+
+                    //反馈信息
+                    string s = set_ac_login_back(account,ac_nickname,ac_icon,svec_friends_info);
+                    channel->send(s);
+                }
+                else { ERR_BACK(CS_ERR_SELECT_DATA); }
             }
             else ERR_BACK(CS_LOGIN_PASSWD_ERR);
         }
@@ -183,75 +236,75 @@ void server_task::task_swap_msg(const sp_channel &channel, const string &sjson)
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
 
-void server_task::task_friends_list(const sp_channel &channel, const string &sjson)
-{
-    //解析json
-    int64 account;
-    if(get_friends_list(sjson,account))
-    {
-        //查好友库
-        vector<string> vec_friends;
-        vector<map<string,string>> vec_line;
-        if(_db_friends->select_friends(account,vec_line))
-        {
-            for(auto a:vec_line)
-            {
-                for(auto b:a)
-                {
-                    if(b.first == _db_friends->get_data().friends)
-                    { vec_friends.push_back(b.second); }
-                }
-            }
-
-            //反馈信息
-            string scev = set_json_vec(vec_friends);
-            channel->send(set_friends_list_back(account,scev,true));
-        }
-        else ERR_BACK(CS_ERR_SELECT_DATA);
-    }
-    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
-}
-
-void server_task::task_friends_status(const sp_channel &channel, const string &sjson)
-{
-    //解析json
-    int64 account;
-    string svec_ac_fs;
-    if(get_friends_status(sjson,account,svec_ac_fs))
-    {
-        //转类型
-        vector<string> vec_ac = get_json_vec(svec_ac_fs);
-        vector<int64> vec_aci;
-        bool ok = vec_stoi(vec_ac,vec_aci);
-
-        //组合好友信息
-        vector<string> vec_ac_info;
-        for(auto ac:vec_aci)
-        {
-            //查好友备注
-            string remarks;
-            if(_db_friends->select_remarks(account,ac,remarks) == false)
-            { vlogw("select_remarks failed"); }
-
-            //查信息库
-            sqlite_info::data fdata;
-            if(_db_info->select_info(ac,fdata))
-            {
-                //查在线列表
-                bool online = true;
-                if(find_connect_th(ac) == nullptr) online = false;
-                vec_ac_info.push_back(set_ac_info_json(ac,fdata.nickname,fdata.icon,remarks,online));
-            }
-            else ERR_BACK(CS_ERR_SELECT_DATA);
-        }
-
-        //反馈信息
-        string svec = set_json_vec(vec_ac_info); //生成svec的json格式字符串
-        string s = set_friends_status_back(account,svec,ok);
-        channel->send(s);
-    }
-    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
-}
+//void server_task::task_friends_list(const sp_channel &channel, const string &sjson)
+//{
+//    //解析json
+//    int64 account;
+//    if(get_friends_list(sjson,account))
+//    {
+//        //查好友库
+//        vector<string> vec_friends;
+//        vector<map<string,string>> vec_line;
+//        if(_db_friends->select_friends(account,vec_line))
+//        {
+//            for(auto a:vec_line)
+//            {
+//                for(auto b:a)
+//                {
+//                    if(b.first == _db_friends->get_data().friends)
+//                    { vec_friends.push_back(b.second); }
+//                }
+//            }
+//
+//            //反馈信息
+//            string scev = set_json_vec(vec_friends);
+//            channel->send(set_friends_list_back(account,scev,true));
+//        }
+//        else ERR_BACK(CS_ERR_SELECT_DATA);
+//    }
+//    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+//}
+//
+//void server_task::task_friends_status(const sp_channel &channel, const string &sjson)
+//{
+//    //解析json
+//    int64 account;
+//    string svec_ac_fs;
+//    if(get_friends_status(sjson,account,svec_ac_fs))
+//    {
+//        //转类型
+//        vector<string> vec_ac = get_json_vec(svec_ac_fs);
+//        vector<int64> vec_aci;
+//        bool ok = vec_stoi(vec_ac,vec_aci);
+//
+//        //组合好友信息
+//        vector<string> vec_ac_info;
+//        for(auto ac:vec_aci)
+//        {
+//            //查好友备注
+//            string remarks;
+//            if(_db_friends->select_remarks(account,ac,remarks) == false)
+//            { vlogw("select_remarks failed"); }
+//
+//            //查信息库
+//            sqlite_info::data fdata;
+//            if(_db_info->select_info(ac,fdata))
+//            {
+//                //查在线列表
+//                bool online = true;
+//                if(find_connect_th(ac) == nullptr) online = false;
+////                vec_ac_info.push_back(set_ac_info_json(ac,fdata.nickname,fdata.icon,remarks,online));
+//            }
+//            else ERR_BACK(CS_ERR_SELECT_DATA);
+//        }
+//
+//        //反馈信息
+//        string svec = set_json_vec(vec_ac_info); //生成svec的json格式字符串
+//        string s = set_friends_status_back(account,svec,ok);
+//        channel->send(s);
+//    }
+//    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+//}
 
 void server_task::task_ac_register(const sp_channel &channel, const string &sjson)
 {
@@ -290,35 +343,36 @@ void server_task::task_swap_cache(const sp_channel &channel, const string &sjson
     {
         //获取暂存信息
         vector<string> data;
-        bool ok = _db_cache->select_cache(target,data);
+        if(_db_cache->select_cache(target,data))
+        {
+            //移除暂存信息
+            _db_cache->delete_cache(target);
 
-        //移除暂存信息
-        if(ok) _db_cache->delete_cache(target);
-
-        //反馈信息
-        string svec = set_json_vec(data);
-        string s = set_swap_cache_back(svec,ok);
-        channel->send(s);
+            //反馈信息
+            string svec = set_json_vec(data);
+            string s = set_swap_cache_back(svec);
+            channel->send(s);
+        }
     }
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
 
-void server_task::task_ac_info(const sp_channel &channel, const string &sjson)
-{
-    //解析json
-    int64 account;
-    if(get_ac_info(sjson,account))
-    {
-        //查信息库
-        sqlite_info::data fdata;
-        bool ok = _db_info->select_info(account,fdata);
-
-        //反馈信息
-        string s = set_ac_info_back(account,fdata.nickname,fdata.icon,ok);
-        channel->send(s);
-    }
-    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
-}
+//void server_task::task_ac_info(const sp_channel &channel, const string &sjson)
+//{
+//    //解析json
+//    int64 account;
+//    if(get_ac_info(sjson,account))
+//    {
+//        //查信息库
+//        sqlite_info::data fdata;
+//        bool ok = _db_info->select_info(account,fdata);
+//
+//        //反馈信息
+//        string s = set_ac_info_back(account,fdata.nickname,fdata.icon,ok);
+//        channel->send(s);
+//    }
+//    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+//}
 
 void server_task::task_ac_update_info(const sp_channel &channel, const string &sjson)
 {
@@ -347,7 +401,7 @@ void server_task::task_ac_update_info(const sp_channel &channel, const string &s
 
         //反馈信息
         bool ok = (ok1 && ok2 && ok3 && ok4 && ok5 && ok6);
-        string s = set_ac_update_info_back(account,ok);
+        string s = set_ac_update_info_back(account,icon,ok);
         channel->send(s);
 
         vlogi("update info:"<< $(account) $(ok) $(phone) $(age) $(sex) $(nickname) $(location) $(icon) );
@@ -362,9 +416,11 @@ void server_task::task_ac_update_remarks(const sp_channel &channel, const string
     string remarks;
     if(get_ac_update_remarks(sjson,account,friends,remarks))
     {
-        bool ok = _db_friends->update_remarks(account,friends,remarks);
-        string s = set_ac_update_remarks_back(account,friends,ok);
-        channel->send(s);
+        if(_db_friends->update_remarks(account,friends,remarks))
+        {
+            string s = set_ac_update_remarks_back(account,friends,remarks);
+            channel->send(s);
+        }
     }
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
@@ -398,23 +454,29 @@ void server_task::task_ac_info_all(const sp_channel &channel, const string &sjso
     else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
 
-void server_task::task_ac_info_remarks(const sp_channel &channel, const string &sjson)
+//void server_task::task_ac_info_remarks(const sp_channel &channel, const string &sjson)
+//{
+//    //解析json
+//    int64 account;
+//    int64 friends;
+//    if(get_ac_info_remarks(sjson,account,friends))
+//    {
+//        string remarks;
+//        if(_db_friends->select_remarks(account,friends,remarks))
+//        {
+//            //反馈信息
+//            string s = set_ac_info_remarks_back(friends,remarks);
+//            channel->send(s);
+//        }
+//        else vlogw("select_remarks failed");
+//    }
+//    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+//}
+
+bool server_task::passwd_verify(string passwd_db, string passwd)
 {
-    //解析json
-    int64 account;
-    int64 friends;
-    if(get_ac_info_remarks(sjson,account,friends))
-    {
-        string remarks;
-        if(_db_friends->select_remarks(account,friends,remarks))
-        {
-            //反馈信息
-            string s = set_ac_info_remarks_back(friends,remarks);
-            channel->send(s);
-        }
-        else vlogw("select_remarks failed");
-    }
-    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
+    if(passwd_db == passwd) return true;
+    return false;
 }
 
 

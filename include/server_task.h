@@ -55,6 +55,7 @@ private:
     sp_channel find_connect_th(int64 account);
     //== _map_connect operator ==
 
+    bool passwd_verify(string passwd_db,string passwd);
 
     void open(const sp_channel &channel, const sp_http& http);
     void message(const sp_channel &channel, const string& msg);
@@ -65,13 +66,13 @@ private:
     void task_swap_cache(const sp_channel &channel,const string &sjson);
     void task_ac_login(const sp_channel &channel,const string &sjson);
     void task_ac_register(const sp_channel &channel,const string &sjson);
-    void task_ac_info(const sp_channel &channel,const string &sjson);
-    void task_ac_info_remarks(const sp_channel &channel,const string &sjson);
+//    void task_ac_info(const sp_channel &channel,const string &sjson);
+//    void task_ac_info_remarks(const sp_channel &channel,const string &sjson);
     void task_ac_info_all(const sp_channel &channel,const string &sjson);
     void task_ac_update_info(const sp_channel &channel,const string &sjson);
     void task_ac_update_remarks(const sp_channel &channel,const string &sjson);
-    void task_friends_list(const sp_channel &channel,const string &sjson);
-    void task_friends_status(const sp_channel &channel,const string &sjson);
+//    void task_friends_list(const sp_channel &channel,const string &sjson);
+//    void task_friends_status(const sp_channel &channel,const string &sjson);
 
 };
 
