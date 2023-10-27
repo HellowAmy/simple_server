@@ -35,6 +35,8 @@ server_task::server_task()
     ADD_TASK(ac_info_all);
     ADD_TASK(ac_update_info);
     ADD_TASK(ac_update_remarks);
+    ADD_TASK(ac_update_friends);
+
 //    ADD_TASK(friends_list);
 //    ADD_TASK(friends_status);
 
@@ -45,6 +47,12 @@ server_task::server_task()
 server_task::~server_task()
 {
 
+}
+
+bool server_task::passwd_verify(string passwd_db, string passwd)
+{
+    if(passwd_db == passwd) return true;
+    return false;
 }
 
 void server_task::transmit_msg(const sp_channel &channel,const string &sjson)
@@ -428,8 +436,9 @@ void server_task::task_ac_update_remarks(const sp_channel &channel, const string
 void server_task::task_ac_info_all(const sp_channel &channel, const string &sjson)
 {
     //解析json
+    int64 types;
     int64 account;
-    if(get_ac_info_all(sjson,account))
+    if(get_ac_info_all(sjson,types,account))
     {
         //查信息库
         sqlite_info::data fdata;
@@ -445,7 +454,7 @@ void server_task::task_ac_info_all(const sp_channel &channel, const string &sjso
                 string icon = fdata.icon;
 
                 //反馈信息
-                string s = set_ac_info_all_back(account,phone,age,sex,nickname,location,icon);
+                string s = set_ac_info_all_back(types,account,phone,age,sex,nickname,location,icon);
                 channel->send(s);
             }
             catch(...) {}
@@ -473,10 +482,53 @@ void server_task::task_ac_info_all(const sp_channel &channel, const string &sjso
 //    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 //}
 
-bool server_task::passwd_verify(string passwd_db, string passwd)
+
+
+void server_task::task_ac_update_friends(const sp_channel &channel, const string &sjson)
 {
-    if(passwd_db == passwd) return true;
-    return false;
+    //获取好友列表信息
+    auto fn_info = [=](int64 account) ->string {
+        //获取好友在线
+        bool online = true;
+        if(find_connect_th(account) == nullptr) online = false;
+
+        //获取好友备注
+        string remarks;
+        if(_db_friends->select_remarks(account,account,remarks) == false)
+        { vlogw("select_remarks failed"); }
+
+        //获取好友信息
+        sqlite_info::data fdata;
+        if(_db_info->select_info(account,fdata) == false)
+        { ERR_BACK(CS_ERR_SELECT_DATA); }
+
+        return set_friends_info_json(account,fdata.nickname,fdata.icon,remarks,online);
+    };
+
+    //解析json
+    int64 account;
+    int64 friends;
+    string ac_remarks;
+    string fr_remarks;
+    if(get_ac_update_friends(sjson,account,friends,ac_remarks,fr_remarks))
+    {
+        //加入双方好友列表
+        _db_friends->insert_ac_both_friend(account,friends,ac_remarks,fr_remarks);
+
+        //反馈信息 -- 接收方
+        {
+            string s = set_ac_update_friends_back(fn_info(friends));
+            channel->send(s);
+        }
+
+        //反馈信息 -- 发送方
+        {
+            string s = set_ac_update_friends_back(fn_info(account));
+            auto it = find_connect_th(account);
+            if(it != nullptr) it->send(s);
+        }
+    }
+    else ERR_BACK_S(CS_ERR_PARSE_JSON,sjson);
 }
 
 

@@ -230,7 +230,7 @@ public:
     bool delete_friends(int64 account,int64 friends);
 
     //同时插入双方账号到好友列表（失败则回滚）
-    bool insert_ac_both_friend(int64 account,int64 friends,string remarks);
+    bool insert_ac_both_friend(int64 account,int64 friends,string ac_remarks,string fr_remarks);
 
     data get_data();
 

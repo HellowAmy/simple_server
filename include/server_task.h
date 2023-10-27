@@ -71,6 +71,10 @@ private:
     void task_ac_info_all(const sp_channel &channel,const string &sjson);
     void task_ac_update_info(const sp_channel &channel,const string &sjson);
     void task_ac_update_remarks(const sp_channel &channel,const string &sjson);
+
+    void task_ac_update_friends(const sp_channel &channel,const string &sjson);
+
+
 //    void task_friends_list(const sp_channel &channel,const string &sjson);
 //    void task_friends_status(const sp_channel &channel,const string &sjson);
 

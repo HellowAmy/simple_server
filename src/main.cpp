@@ -748,7 +748,7 @@ void test_11()
 
         for(auto a:vec)
         {
-            bool ok = sqlf.insert_ac_both_friend(account,a,"");
+            bool ok = sqlf.insert_ac_both_friend(account,a,"","");
             (ok == true ? vlogd($(ok)) : vloge($(ok)));
         }
     }

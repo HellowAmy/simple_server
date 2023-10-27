@@ -288,11 +288,11 @@ bool sqlite_friends::select_remarks(int64 account, int64 ac_friends, string &rem
     return ok;
 }
 
-bool sqlite_friends::insert_ac_both_friend(int64 account, int64 friends, string remarks)
+bool sqlite_friends::insert_ac_both_friend(int64 account, int64 friends, string ac_remarks,string fr_remarks)
 {
     commit_begin();
-    bool ok1 = insert_friends(account,friends,remarks);
-    bool ok2 = insert_friends(friends,account,"");
+    bool ok1 = insert_friends(account,friends,ac_remarks);
+    bool ok2 = insert_friends(friends,account,fr_remarks);
 
     bool ok_ret = (ok1 && ok2);
     if(ok_ret) commit_end();
